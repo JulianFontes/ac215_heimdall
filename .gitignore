@@ -3,4 +3,4 @@ __pycache__/
 
 # User directories
 data/*
-.earthcare_config/
+.earthcare_config/*
