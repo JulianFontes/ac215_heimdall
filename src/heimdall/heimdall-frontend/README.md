@@ -14,7 +14,7 @@ no account, no token. Set `VITE_MAPBOX_TOKEN=pk....` in `.env` only if you want 
 ```
 
 ## Our Own Data
-This will be updated once we serve data from our models to the front end. As of now the current frontend generates and loads in default cloud points and voxels.
+This will be updated once we serve data from our models to the front end. As of now the current frontend generates and loads in default cloud points and voxels. Note that this data was AI generated with the minimum values required to visualize and demonstrate the filtering.
 - `public/data/points.csv`: `lat, lon, alt, density, confidence, timestamp` (alt in metres, timestamp as `YYYY-MM-DD HH:mm:ss` UTC)
 - `public/data/voxels.geojson`: square Polygons with z = base altitude and properties `density, confidence, points, base_alt_m, height_m, timestamp`
 Edit `src/config.js` to change layers, colors and filters.
