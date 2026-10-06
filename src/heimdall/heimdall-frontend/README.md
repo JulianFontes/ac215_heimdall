@@ -10,7 +10,7 @@ no account, no token. Set `VITE_MAPBOX_TOKEN=pk....` in `.env` only if you want 
 
 ## Run
 ```bash
-./start.sh             # checks Node, installs deps, generates data, starts the server
+./start_frontend.sh             # checks Node, installs deps, generates data, starts the server
 ```
 
 ## Our Own Data
