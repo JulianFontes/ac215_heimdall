@@ -5,3 +5,15 @@ __pycache__/
 # User directories
 data/*
 .earthcare_config/*
+
+# Node / frontend
+node_modules
+node_modules.nosync
+dist
+dist.nosync
+.vite/
+*.local
+
+# Local env (keep .env.example tracked) to ensure API keys aren't included in the repo
+# Use the example as 
+.env
