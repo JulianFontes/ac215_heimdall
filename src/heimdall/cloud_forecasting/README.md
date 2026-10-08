@@ -6,7 +6,7 @@ Until real C3DIR data is available, training uses C3DIR-like volumes derived fro
 
 ## Run
 
-From anywhere in the repo:
+From the top folder of the `heimdall` repo:
 
 ```bash
 ./src/heimdall/cloud_forecasting/run_train.sh
