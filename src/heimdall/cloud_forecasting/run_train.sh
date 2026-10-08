@@ -5,8 +5,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../../.."  # project root
 
-uv run python src/heimdall/heimdall-bifrost/forecasting.py \
+uv run python src/heimdall/cloud_forecasting/forecasting.py \
   -p data/era5/boston_subset/c3dir_like_era5_20260601_20260615_N45.5_W74_S39.5_E68.nc \
-  --epoch 50 \
+  --epochs 50 \
   --out training_runs/runs_15day_epoch50 \
   "$@"
