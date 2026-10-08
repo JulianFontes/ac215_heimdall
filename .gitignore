@@ -4,7 +4,11 @@ __pycache__/
 
 # User directories
 data/*
+training_runs/
+sandbox/
 .earthcare_config/*
+.archive/
+
 
 # Node / frontend
 node_modules
@@ -17,3 +21,4 @@ dist.nosync
 # Local env (keep .env.example tracked) to ensure API keys aren't included in the repo
 # Use the example as 
 .env
+.vscode
