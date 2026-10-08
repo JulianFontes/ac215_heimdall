@@ -1,6 +1,17 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
+# Environments
+.venv/
+
+# Scraped data, trained models and generated figures
+data/
+artifacts/*/*
+!artifacts/*/.gitkeep
+
 # User directories
-data/*
 .earthcare_config/
+.DS_Store
+
+# IDE settings
+.idea/

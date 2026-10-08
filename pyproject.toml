@@ -10,3 +10,7 @@ dependencies = [
     "satpy>=0.60.0",
     "tqdm>=4.70.1",
 ]
+
+[build-system]
+requires = ["uv_build>=0.8"]
+build-backend = "uv_build"
