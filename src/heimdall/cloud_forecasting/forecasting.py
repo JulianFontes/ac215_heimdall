@@ -23,6 +23,7 @@ Outputs (in the --out folder, default runs/):
 
 Example: python forecasting.py -p c3dir_like_era5_20260601_20260603_N45_5_W74_S39_5_E68.nc --epochs 20
 """
+print('Importing python packages ...')
 import argparse
 from pathlib import Path
 
