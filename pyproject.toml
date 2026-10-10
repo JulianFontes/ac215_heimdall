@@ -3,13 +3,13 @@ name = "heimdall"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
-    "matplotlib>=3.11.2",
-    "netcdf4>=1.7.4",
+    "matplotlib",
+    "netcdf4",
     "numpy",
-    "pandas>=3.0.6",
-    "torch>=2.14.1",
-    "torchmetrics>=1.9.0",
-    "tqdm>=4.70.1",
-    "xarray>=2026.9.0",
-    "xbatcher>=0.4.0",
+    "pandas",
+    "torch",
+    "torchmetrics",
+    "tqdm",
+    "xarray",
+    "xbatcher",
 ]

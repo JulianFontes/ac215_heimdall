@@ -293,15 +293,15 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "matplotlib", specifier = ">=3.11.2" },
-    { name = "netcdf4", specifier = ">=1.7.4" },
+    { name = "matplotlib" },
+    { name = "netcdf4" },
     { name = "numpy" },
-    { name = "pandas", specifier = ">=3.0.6" },
-    { name = "torch", specifier = ">=2.14.1" },
-    { name = "torchmetrics", specifier = ">=1.9.0" },
-    { name = "tqdm", specifier = ">=4.70.1" },
-    { name = "xarray", specifier = ">=2026.9.0" },
-    { name = "xbatcher", specifier = ">=0.4.0" },
+    { name = "pandas" },
+    { name = "torch" },
+    { name = "torchmetrics" },
+    { name = "tqdm" },
+    { name = "xarray" },
+    { name = "xbatcher" },
 ]
 
 [[package]]
