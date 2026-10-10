@@ -9,16 +9,16 @@ Until real C3DIR data is available, training uses C3DIR-like volumes derived fro
 From the top folder of the `heimdall` repo:
 
 ```bash
-./src/heimdall/cloud_forecasting/run_train.sh
+./src/heimdall/cloud_forecasting/run_train.sh --help
 ```
 
-This trains on the 15-day ERA5 subset for 50 epochs and writes to `training_runs/runs_15day_epoch50`. Extra arguments are passed through to `forecasting.py` and override the defaults:
+This trains on a subset for a set number of epochs and writes to a user input directory. Extra arguments are passed through to `forecasting.py` and override the defaults:
 
 ```bash
 ./src/heimdall/cloud_forecasting/run_train.sh --epochs 5 --out training_runs/quick_test
 ```
 
-To run on a different file, call the script directly from the project root:
+To run on a different file, one can update the `run_train.sh` script or call the script directly from the project root:
 
 ```bash
 uv run python src/heimdall/cloud_forecasting/forecasting.py \
