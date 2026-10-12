@@ -1,4 +1,4 @@
-"""figures for the collocated goes-19 / earthcare pairs (see heimdall.c3dir.goes19)."""
+"""figures for the collocated goes-19 / earthcare pairs (see heimdall.c3dir.data_scraping.goes)."""
 import warnings
 from pathlib import Path
 
@@ -8,19 +8,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import xarray as xr
-from matplotlib.colors import LinearSegmentedColormap, LogNorm
+from matplotlib.colors import LogNorm
 from matplotlib.patches import Ellipse
 from matplotlib.lines import Line2D
 from matplotlib.ticker import MaxNLocator
 
-from heimdall.c3dir.earthcare_labels import MASK_THRESHOLD, TARGETS
-from heimdall.c3dir.goes19 import BANDS, ray_point, satellite_frame, scan_angles
-from heimdall.plot_style import styled
+from heimdall.c3dir.constants import BANDS, MASK_THRESHOLD, TARGETS
+from heimdall.c3dir.geometry import ray_point, satellite_frame, scan_angles
+from heimdall.plot_style import CLOUD_CMAP, NO_DATA_COLOR, RAY_COLOR, styled, true_color
 
 
-RAY_COLOR = "tab:orange"
-SKY_COLOR = "#a9cbea"  # clear air in the curtain figure
-NO_DATA_COLOR = "0.25"  # no valid retrieval (e.g. below ground) in the curtain figure  # goes lines of sight and their matched voxels in the voxel figure
 
 
 class Plotting:
@@ -31,12 +28,7 @@ class Plotting:
     def __init__(self, out_dir=None):
         self.out_dir = Path(out_dir) if out_dir else None
 
-    @staticmethod
-    def true_color(ds):
-        """rough true color from goes bands 1 (blue), 2 (red) and 3 (veggie)."""
-        r, b, veg = (np.clip(ds[f"CMI_C0{i}"].values, 0, 1) for i in (2, 1, 3))
-        g = 0.45 * r + 0.10 * veg + 0.45 * b  # abi has no green band, so one is synthesized
-        return np.nan_to_num(np.dstack([r, g, b])) ** (1 / 2.2)  # gamma brightening
+    true_color = staticmethod(true_color)
 
     @staticmethod
     def geos_crs(ds):
@@ -407,8 +399,7 @@ class Plotting:
 
         # earthcare curtains, one shared log scale so the panels compare directly
         # clouds gray (thin) to white (thick) on a blue sky, like looking at clouds
-        cmap = LinearSegmentedColormap.from_list("cloud", ["#5f6b78", "#b8c0c8", "#ffffff"]).with_extremes(
-            under=SKY_COLOR, bad=(0, 0, 0, 0))
+        cmap = CLOUD_CMAP.with_extremes(bad=(0, 0, 0, 0))  # transparent where no retrieval, so the facecolor shows
         norm = LogNorm(vmin=MASK_THRESHOLD, vmax=1.0, clip=False)
         for ax, (name, var) in zip(axes[2:], water.items()):
             w = pair[var].values.T  # [level, profile]

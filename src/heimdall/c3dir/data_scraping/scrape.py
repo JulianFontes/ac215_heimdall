@@ -9,16 +9,12 @@ outputs are cached, so re-running a range only fetches what's new
                                  (defaults to artifacts/figures)
 
 example:
-  uv run python -m heimdall.c3dir.scrape --start 2025-07-09T18:00 --end 2025-07-09T20:00 --plot
+  uv run python -m heimdall.c3dir.data_scraping.scrape --start 2025-07-09T18:00 --end 2025-07-09T20:00 --plot
 """
 import argparse
 
-import matplotlib
-import matplotlib.pyplot as plt
-
-from heimdall.c3dir.earthcare_labels import EarthCareLabels
-from heimdall.c3dir.goes19 import GOES19
-from heimdall.c3dir.plotting import Plotting
+from heimdall.c3dir.data_scraping.earthcare import EarthCareLabels
+from heimdall.c3dir.data_scraping.goes import GOES19
 from heimdall.paths import DATA_DIR, FIGURES_DIR
 
 
@@ -26,7 +22,13 @@ def scrape(start, end, data_dir=DATA_DIR, domain="F", keep_raw=False, plot_dir=N
     """collocate every ACM_CAP_2B frame in [start, end] that goes-19 can see; returns the pairs."""
     earthcare = EarthCareLabels(data_dir, keep_raw=keep_raw)
     goes = GOES19(data_dir, domain=domain, keep_raw=keep_raw)
-    plotting = Plotting(plot_dir) if plot_dir else None
+    if plot_dir:  # plotting libraries are only needed when plotting
+        import matplotlib.pyplot as plt
+
+        from heimdall.c3dir.plots.collocation_plots import Plotting
+        plotting = Plotting(plot_dir)
+    else:
+        plotting = None
     # find the earthcare frames, then the goes scans matching each one
     frames = earthcare.search(start, end)
     print(f"{len(frames)} ACM_CAP_2B frames in the GOES-19 view")
@@ -46,6 +48,7 @@ def scrape(start, end, data_dir=DATA_DIR, domain="F", keep_raw=False, plot_dir=N
 
 
 def main():
+    import matplotlib
     matplotlib.use("Agg")  # save figures to file without opening windows
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--start", required=True, help="UTC start, e.g. 2025-07-09T18:00")

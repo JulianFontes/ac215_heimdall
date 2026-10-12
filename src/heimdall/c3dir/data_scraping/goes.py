@@ -2,7 +2,7 @@
 
 follows the C3DIR paper's 3-D collocation (sections 3.1-3.2). goes sees through the
 atmosphere along a slanted line of sight, so each goes pixel is a column of voxels at
-the 80 C3DIR heights along that line, not straight up. every labelled earthcare voxel
+the 80 C3DIR heights along that line, not straight up. every labeled earthcare voxel
 (profile, height) is matched to the goes pixel whose line of sight passes closest at
 that height, if the two are within 5 km horizontally and within 2.5 min of when goes
 imaged that pixel (the north-to-south scan included). each goes voxel keeps a single
@@ -20,83 +20,12 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from goes2go import GOES
-from pyproj import Proj
 
-from heimdall.c3dir.earthcare_labels import TARGETS
+from heimdall.c3dir.constants import BANDS, TARGETS
+from heimdall.c3dir.geometry import closest_ray, ray_point, satellite_frame, scan_angles
 from heimdall.paths import DATA_DIR
 
-BANDS = [f"CMI_C{band:02d}" for band in range(1, 17)]  # all 16 abi bands
 SCAN_MINUTES = {"F": 10, "C": 5}  # how often each domain gets scanned
-
-
-def goes_proj(ds):
-    """pyproj projection for the goes grid (x/y in meters = scan angle * satellite height)."""
-    p = ds["goes_imager_projection"].attrs
-    return Proj(proj="geos", h=p["perspective_point_height"],
-                lon_0=p["longitude_of_projection_origin"], sweep=p["sweep_angle_axis"],
-                a=p["semi_major_axis"], b=p["semi_minor_axis"])
-
-
-# line-of-sight geometry, from the ABI fixed grid navigation equations in the GOES-R
-# Product User Guide (section 4.2.8). positions are in the satellite frame used there:
-# sx toward earth's center, sy east-west, sz north-south, all in meters. a point at
-# height h is handled by inflating the ellipsoid by h, which is far more accurate than
-# a 2 km pixel at cloud heights.
-
-def _ellipsoid(p, height_m=0.0):
-    """(a, b, H, lon0): semi-axes inflated by height_m, satellite distance from earth's center, origin (rad)."""
-    return (p["semi_major_axis"] + height_m, p["semi_minor_axis"] + height_m,
-            p["perspective_point_height"] + p["semi_major_axis"],
-            np.deg2rad(p["longitude_of_projection_origin"]))
-
-
-def satellite_frame(lat, lon, height_m, p):
-    """satellite-frame position (sx, sy, sz) of points at geodetic lat/lon (degrees) and height_m.
-
-    p: attributes of goes_imager_projection.
-    """
-    a, b, H, lon0 = _ellipsoid(p)
-    lat, dlon = np.deg2rad(lat), np.deg2rad(lon) - lon0
-    e2 = 1 - (b / a) ** 2
-    n = a / np.sqrt(1 - e2 * np.sin(lat) ** 2)  # prime vertical radius of curvature
-    horizontal = (n + height_m) * np.cos(lat)
-    return (H - horizontal * np.cos(dlon), -horizontal * np.sin(dlon),
-            (n * (1 - e2) + height_m) * np.sin(lat))
-
-
-def scan_angles(lat, lon, height_m, p):
-    """goes scan angles (x, y) in radians at which a point at lat/lon/height_m is seen.
-
-    nan where the earth blocks the view. at height_m = 0 this matches goes_proj.
-    """
-    sx, sy, sz = satellite_frame(lat, lon, height_m, p)
-    a, b, H, _ = _ellipsoid(p, height_m)
-    hidden = H * (H - sx) < sy ** 2 + (a / b) ** 2 * sz ** 2  # behind the limb
-    x = np.arcsin(-sy / np.sqrt(sx ** 2 + sy ** 2 + sz ** 2))
-    y = np.arctan(sz / sx)
-    return np.where(hidden, np.nan, x), np.where(hidden, np.nan, y)
-
-
-def ray_point(x, y, height_m, p):
-    """satellite-frame position (sx, sy, sz) where the line of sight at scan angles x/y crosses height_m.
-
-    nan where the line of sight misses the earth.
-    """
-    a, b, H, _ = _ellipsoid(p, height_m)
-    qa = np.sin(x) ** 2 + np.cos(x) ** 2 * (np.cos(y) ** 2 + (a / b) ** 2 * np.sin(y) ** 2)
-    qb = -2 * H * np.cos(x) * np.cos(y)
-    qc = H ** 2 - a ** 2
-    disc = qb ** 2 - 4 * qa * qc
-    rs = np.where(disc >= 0, (-qb - np.sqrt(np.maximum(disc, 0))) / (2 * qa), np.nan)  # near side
-    return rs * np.cos(x) * np.cos(y), -rs * np.sin(x), rs * np.cos(x) * np.sin(y)
-
-
-def ray_latlon(x, y, height_m, p):
-    """lat/lon (degrees) where the line of sight at scan angles x/y crosses height_m."""
-    sx, sy, sz = ray_point(x, y, height_m, p)
-    a, b, H, lon0 = _ellipsoid(p, height_m)
-    lat = np.arctan((a / b) ** 2 * sz / np.sqrt((H - sx) ** 2 + sy ** 2))
-    return np.rad2deg(lat), np.rad2deg(lon0 - np.arctan(sy / (H - sx)))
 
 
 class GOES19:
@@ -188,9 +117,9 @@ class GOES19:
         x, y = ds.x.values, ds.y.values
         heights = labels["level"].values * 1000.0  # level centers, m
 
-        # every labelled earthcare voxel: all three water contents valid
-        labelled = np.all([np.isfinite(labels[v].values) for v in TARGETS[:3]], axis=0)
-        prof, lev = np.nonzero(labelled)
+        # every labeled earthcare voxel: all three water contents valid
+        labeled = np.all([np.isfinite(labels[v].values) for v in TARGETS[:3]], axis=0)
+        prof, lev = np.nonzero(labeled)
         lat, lon, z = labels["lat"].values[prof], labels["lon"].values[prof], heights[lev]
 
         # first guess: the pixel nearest in scan angle to where goes sees each voxel
@@ -208,7 +137,7 @@ class GOES19:
         # distance (paper: <= 5 km). at oblique views a footprint is stretched diagonally across
         # the scan-angle grid, so the rounded guess can be a pixel or two off: check its 5x5 block
         voxel = np.stack(satellite_frame(labels["lat"].values[prof], labels["lon"].values[prof], z, p))
-        row, col, distance_km = self._closest_ray(voxel, z, row, col, x, y, p)
+        row, col, distance_km = closest_ray(voxel, z, row, col, x, y, p)
         # band 13 checks the pixel actually has data (not space or a gap)
         has_data = np.isfinite(ds["CMI_C13"].isel(y=xr.DataArray(row), x=xr.DataArray(col)).values)
         # per-pixel time check, the 2.5 min rule from the C3DIR paper (section 3.2)
@@ -249,29 +178,6 @@ class GOES19:
         }, coords={"target": TARGETS})
         # goes crop (y, x), profiles (profile, level) and voxels (voxel) side by side in one file
         return xr.merge([crop, matched, voxels], combine_attrs="override")
-
-    @staticmethod
-    def _closest_ray(voxel, z, row, col, x, y, p, reach=2, chunk=50_000):
-        """among the pixels within reach of (row, col), the one whose line of sight passes
-        closest to each voxel at height z; returns its row, col and the distance in km.
-
-        voxel: [3, n] satellite-frame positions. done in chunks to bound memory.
-        """
-        offsets = np.arange(-reach, reach + 1)
-        dr, dc = (o.ravel() for o in np.meshgrid(offsets, offsets, indexing="ij"))
-        best_row, best_col = np.empty_like(row), np.empty_like(col)
-        best_km = np.empty(len(row))
-        for s in range(0, len(row), chunk):
-            part = slice(s, s + chunk)
-            rr = np.clip(row[part, None] + dr, 0, len(y) - 1)
-            cc = np.clip(col[part, None] + dc, 0, len(x) - 1)
-            ray = ray_point(x[cc], y[rr], z[part, None], p)
-            d = np.sqrt(sum((voxel[i, part, None] - ray[i]) ** 2 for i in range(3)))
-            d = np.where(np.isfinite(d), d, np.inf)  # lines of sight that miss the earth
-            k = np.argmin(d, axis=1)
-            n = np.arange(len(k))
-            best_row[part], best_col[part], best_km[part] = rr[n, k], cc[n, k], d[n, k] / 1000.0
-        return best_row, best_col, best_km
 
     @staticmethod
     def row_times(ds):

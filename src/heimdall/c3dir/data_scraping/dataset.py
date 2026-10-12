@@ -11,7 +11,7 @@ two steps, both cached on disk next to the collocated pairs:
 
 C3DIRDataset then cuts fixed-size patches along the track for one split. labels are a
 list of voxels with their coordinates in the model's output volume, as in the C3DIR
-paper (section 4): the model predicts every voxel, and the loss uses only the labelled
+paper (section 4): the model predicts every voxel, and the loss uses only the labeled
 ones. the vertical axis of that volume follows each pixel's slanted line of sight
 (paper section 3.1). it needs only numpy and works with torch.utils.data.DataLoader
 as-is (pass collate_fn=collate).
@@ -26,8 +26,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from heimdall.c3dir.earthcare_labels import TARGETS
-from heimdall.c3dir.goes19 import BANDS
+from heimdall.c3dir.constants import BANDS, TARGETS
 from heimdall.paths import DATA_DIR
 
 VOXEL_VARS = ["voxel_level", "voxel_row", "voxel_col", "voxel_profile", "voxel_distance_km",
@@ -68,14 +67,15 @@ class Samples:
         print(f"{len(built)} samples in {self.samples_dir}")
         return built
 
-    def split(self, val_fraction=0.1, test_fraction=0.1, test_after=None):
+    def split(self, val_fraction=0.1, test_fraction=0.1, val_after=None, test_after=None):
         """assign every sample to train / val / test by the date of its goes scan.
 
-        all samples from one day share a split, so neighbouring pixels on a
+        all samples from one day share a split, so neighboring pixels on a
         track never land on both sides. the split comes from a hash of the date,
         so a day never moves when more data is scraped.
-        test_after: optional date; every day from then on goes to test (a held-out
-        later period), and the hash splits only the days before it.
+        val_after / test_after: optional dates for held-out later periods, as in the paper:
+        days from val_after go to val, days from test_after to test, and the hash only
+        splits the days before the first of them.
 
         also writes the mean/std of each band over the train samples to
         band_stats.csv for C3DIRDataset to normalize with.
@@ -94,6 +94,8 @@ class Samples:
         def which(date):
             if test_after is not None and pd.Timestamp(date) >= pd.Timestamp(test_after):
                 return "test"
+            if val_after is not None and pd.Timestamp(date) >= pd.Timestamp(val_after):
+                return "val"
             # md5 instead of hash() since python randomizes hash() between runs
             u = int(hashlib.md5(date.encode()).hexdigest(), 16) % 10_000 / 10_000
             return "test" if u < test_fraction else "val" if u < test_fraction + val_fraction else "train"
@@ -124,10 +126,12 @@ class Samples:
         return table
 
 
-@lru_cache(maxsize=32)
+@lru_cache(maxsize=None)
 def _load(path):
-    """cache recent sample files in memory; consecutive patches usually come from the same file."""
-    return xr.load_dataset(path)
+    """the arrays of a sample file, kept in memory after the first read (~10-15 MB per sample),
+    since patches are drawn from all files at random."""
+    with xr.open_dataset(path) as s:
+        return {k: s[k].values for k in ["goes", "voxel_level", "voxel_row", "voxel_col", "voxel_labels"]}
 
 
 class C3DIRDataset:
@@ -143,7 +147,7 @@ class C3DIRDataset:
     each item is a dict:
       x       (16, patch, patch) float32, normalized; nan (space / padding) -> 0
       valid   (patch, patch) bool, where x has real data
-      index   (n, 3) int, (level, row, col) of each labelled voxel in the output volume
+      index   (n, 3) int, (level, row, col) of each labeled voxel in the output volume
       y       (n, 9) float32 labels in physical units, in TARGETS order (radii nan
               where that phase is absent)
     n changes from patch to patch, so batch them with collate().
@@ -177,12 +181,12 @@ class C3DIRDataset:
     def __getitem__(self, k):
         i, row, col = self.index[k]
         s = _load(str(self.files[i]))
-        H, W, P = s.sizes["y"], s.sizes["x"], self.patch
+        (_, H, W), P = s["goes"].shape, self.patch
 
         # top-left corner: centered on the pixel, pushed back inside the crop where possible
         r0 = int(np.clip(row - P // 2, 0, max(H - P, 0)))
         c0 = int(np.clip(col - P // 2, 0, max(W - P, 0)))
-        image = s["goes"].values[:, r0:r0 + P, c0:c0 + P]
+        image = s["goes"][:, r0:r0 + P, c0:c0 + P]
         x = np.full((len(BANDS), P, P), np.nan, dtype=np.float32)  # pad if the crop is smaller than a patch
         x[:, :image.shape[1], :image.shape[2]] = image
         valid = np.isfinite(x).all(0)
@@ -190,16 +194,16 @@ class C3DIRDataset:
             x = (x - self.mean) / self.std
         x = np.nan_to_num(x, nan=0.0)  # 0 = the band mean after normalizing
 
-        # every labelled voxel inside this patch
-        rows, cols = s["voxel_row"].values, s["voxel_col"].values
+        # every labeled voxel inside this patch
+        rows, cols = s["voxel_row"], s["voxel_col"]
         inside = (rows >= r0) & (rows < r0 + P) & (cols >= c0) & (cols < c0 + P)
-        index = np.stack([s["voxel_level"].values[inside], rows[inside] - r0, cols[inside] - c0], axis=1)
+        index = np.stack([s["voxel_level"][inside], rows[inside] - r0, cols[inside] - c0], axis=1)
         return {"x": x, "valid": valid, "index": index.astype(np.int64),
-                "y": s["voxel_labels"].values[inside].astype(np.float32)}
+                "y": s["voxel_labels"][inside].astype(np.float32)}
 
 
 def collate(items):
-    """batch dataset items for a DataLoader: pads the labelled voxels to the most in the
+    """batch dataset items for a DataLoader: pads the labeled voxels to the most in the
     batch and stacks everything.
 
     gives numpy arrays: x (B, 16, P, P), valid (B, P, P), index (B, n, 3), y (B, n, 9)

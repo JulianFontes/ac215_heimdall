@@ -25,7 +25,8 @@ import pvlib
 import requests
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 
-from heimdall.c3dir.earthcare_labels import EarthCareLabels
+from heimdall.c3dir.constants import GOES19_LON, VIEW_RADIUS_DEG
+from heimdall.c3dir.geometry import view_circle
 from heimdall.paths import DATA_DIR, FIGURES_DIR
 from heimdall.plot_style import use as use_plot_style
 
@@ -115,7 +116,7 @@ def analyze(data, meta):
         is_clear, _, alpha = pvlib.clearsky.detect_clearsky(df["ghi"].fillna(0), df["ghi_cs"], times,
                                                             return_components=True)
     df["is_clear"] = is_clear & day
-    # alpha: factor that best scales the modelled clear sky onto the measured clear periods;
+    # alpha: factor that best scales the modeled clear sky onto the measured clear periods;
     # alpha > 1 means the Ineichen clear sky (monthly turbidity climatology) runs low at this site
     df.attrs["clearsky_alpha"] = alpha
 
@@ -204,8 +205,8 @@ ax.set_global()
 ax.add_feature(cfeature.LAND.with_scale("50m"), color="0.92")
 ax.coastlines("50m", lw=0.5, color="0.4")
 ax.add_feature(cfeature.BORDERS.with_scale("50m"), lw=0.3, edgecolor="0.6")
-ring = np.array(EarthCareLabels().view_polygon()["coordinates"][0])
-ax.plot(ring[:, 0], ring[:, 1], color="tab:blue", lw=1.5, transform=ccrs.Geodetic(),
+view_lat, view_lon = view_circle(GOES19_LON, VIEW_RADIUS_DEG)
+ax.plot(np.r_[view_lon, view_lon[:1]], np.r_[view_lat, view_lat[:1]], color="tab:blue", lw=1.5, transform=ccrs.Geodetic(),
         label="GOES-19 view used for C3DIR (65°)")
 for code, (meta, _) in stations.items():
     ax.plot(meta["longitude"], meta["latitude"], "o", color=colors[code], ms=7, mec="k", mew=0.5,

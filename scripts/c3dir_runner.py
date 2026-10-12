@@ -21,9 +21,9 @@ note: example script; the training dataset(s) and model framework are in progres
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from heimdall.c3dir.earthcare_labels import EarthCareLabels
-from heimdall.c3dir.plotting import Plotting
-from heimdall.c3dir.scrape import scrape
+from heimdall.c3dir.data_scraping.earthcare import EarthCareLabels
+from heimdall.c3dir.plots.collocation_plots import Plotting
+from heimdall.c3dir.data_scraping.scrape import scrape
 from heimdall.paths import DATA_DIR, FIGURES_DIR
 
 # settings: change these

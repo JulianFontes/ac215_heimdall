@@ -21,17 +21,10 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from heimdall.c3dir.constants import GOES19_LON, LEVELS_KM, MASK_THRESHOLD, VIEW_RADIUS_DEG
+from heimdall.c3dir.geometry import view_circle
 from heimdall.paths import DATA_DIR
 
-GOES19_LON = -75.2  # goes-19 sub-satellite longitude
-LEVELS_KM = np.arange(80) * 0.25 + 0.125  # 80 levels every 0.25 km, from the C3DIR paper (section 2.3)
-MASK_THRESHOLD = 1e-5  # g m^-3, cloud/no-cloud cutoff from the C3DIR paper (section 2.2)
-
-# the 9 C3DIR targets (paper sections 2.2-2.3), in the order used everywhere downstream
-WATER = ["iwc", "lwc", "rwc"]  # g m^-3
-RADII = ["ice_radius", "liquid_radius"]  # µm
-MASKS = ["ice_mask", "liquid_mask", "rain_mask", "hydrometeor_mask"]  # 0/1
-TARGETS = WATER + RADII + MASKS
 
 
 class EarthCareLabels:
@@ -45,7 +38,7 @@ class EarthCareLabels:
 
     file_type = "ACM_CAP_2B"  # the combined cloud/aerosol/precip product C3DIR trains on
 
-    def __init__(self, data_dir=DATA_DIR, lon0=GOES19_LON, view_radius_deg=65.0, keep_raw=True):
+    def __init__(self, data_dir=DATA_DIR, lon0=GOES19_LON, view_radius_deg=VIEW_RADIUS_DEG, keep_raw=True):
         self.raw_dir = Path(data_dir) / "earthcare" / "raw"
         self.label_dir = Path(data_dir) / "earthcare" / "labels"
         self.lon0 = lon0
@@ -56,11 +49,7 @@ class EarthCareLabels:
         """geojson circle covering what goes-19 can see, used as the search area.
         the MAAP search api currently rejects earthcarekit's `bounding_box`, so a
         polygon is used instead."""
-        # points on a circle of radius view_radius_deg around the sub-satellite point
-        azimuth = np.deg2rad(np.linspace(360, 0, n, endpoint=False))  # counter-clockwise
-        d = np.deg2rad(self.view_radius_deg)
-        lat = np.rad2deg(np.arcsin(np.sin(d) * np.cos(azimuth)))
-        lon = self.lon0 + np.rad2deg(np.arctan2(np.sin(azimuth) * np.sin(d), np.cos(d)))
+        lat, lon = view_circle(self.lon0, self.view_radius_deg, n)
         ring = [[float(x), float(y)] for x, y in zip(lon, lat)]
         return {"type": "Polygon", "coordinates": [ring + ring[:1]]}  # geojson wants the ring closed
 
