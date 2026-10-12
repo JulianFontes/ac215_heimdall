@@ -964,7 +964,9 @@ dependencies = [
     { name = "earthcarekit" },
     { name = "goes2go" },
     { name = "pandas" },
+    { name = "pvlib" },
     { name = "pyresample" },
+    { name = "requests" },
     { name = "satpy" },
     { name = "tqdm" },
 ]
@@ -974,7 +976,9 @@ requires-dist = [
     { name = "earthcarekit", specifier = ">=0.19.0" },
     { name = "goes2go", specifier = ">=2025.10.0" },
     { name = "pandas", specifier = ">=3.0.6" },
+    { name = "pvlib", specifier = ">=0.16.1" },
     { name = "pyresample", specifier = ">=1.35.0" },
+    { name = "requests", specifier = ">=2.34.2" },
     { name = "satpy", specifier = ">=0.60.0" },
     { name = "tqdm", specifier = ">=4.70.1" },
 ]
@@ -2316,6 +2320,24 @@ wheels = [
 ]
 
 [[package]]
+name = "pvlib"
+version = "0.16.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "h5py" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "pytz" },
+    { name = "requests" },
+    { name = "scipy" },
+    { name = "tzdata" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/74/53/9f4b31b2c5c530f258713cee32b9dd653f6f158ca86d18671bbc7a175092/pvlib-0.16.1.tar.gz", hash = "sha256:58c435f93be516bcedf53dc3a49b2079e9e00af373f5c052cb7cf8d2b973ce62", size = 38792029, upload-time = "2026-09-26T09:23:28.825Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/14/aa/e5089a4a61fea61d9bd69c23b9fdbbacea6d175c114f2c45be7ef6391b3e/pvlib-0.16.1-py3-none-any.whl", hash = "sha256:4e61b5228a13f782413d7cf8cc48eb6e62e7bf55d155958fa9fd72420b63603d", size = 19368848, upload-time = "2026-09-26T09:23:24.3Z" },
+]
+
+[[package]]
 name = "pycparser"
 version = "3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2823,6 +2845,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/21/25/5473e46b179f8e8b4ad3aeeb36773d1701b7770eaf5e5bc2025c7303b598/python_json_logger-4.2.0.tar.gz", hash = "sha256:e371ebe22ec01e289850102091a2b1f6fc9e655c7f1f5f29073936756c290afa", size = 18211, upload-time = "2026-08-15T11:36:38.232Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dc/55/6467fde553886cb293e41538f3a8b4e4fd4688c6df242cf982162d8367fb/python_json_logger-4.2.0-py3-none-any.whl", hash = "sha256:158a52126fcd6869e09574d2b66272666f3dc8f468c62637ef9a1fa883719cb9", size = 14988, upload-time = "2026-08-15T11:36:36.821Z" },
+]
+
+[[package]]
+name = "pytz"
+version = "2026.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/14/21/d83d6ef28c4c912c4bb4d1dcf591f7b8c6bde87b9c66f9f454677314e16d/pytz-2026.5.tar.gz", hash = "sha256:fa23724b9c486543b9ff54a327ee7569ac83ade54bb9afd0fc18676620401c86", size = 318572, upload-time = "2026-10-04T02:37:58.719Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4f/ef/c66110d46fb800dda0bf33164182dfadabe26a90e4476844d502a23dca8e/pytz-2026.5-py2.py3-none-any.whl", hash = "sha256:e658af3757f9e26a9d25dd2aff38335acd92bc9104f890a894b2c1ba28311b03", size = 506342, upload-time = "2026-10-04T02:37:56.814Z" },
 ]
 
 [[package]]
