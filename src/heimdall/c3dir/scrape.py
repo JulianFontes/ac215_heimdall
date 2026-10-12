@@ -4,8 +4,8 @@ outputs are cached, so re-running a range only fetches what's new
 (<data-dir> defaults to data/ at the repo root):
   <data-dir>/earthcare/raw/      ACM_CAP_2B frames (.h5)
   <data-dir>/earthcare/labels/   C3DIR labels, one .nc per frame
-  <data-dir>/collocated/         GOES crop + matched labels, one .nc per frame x scan
-  <plot-dir>/                    GOES map + EarthCARE curtain figures with --plot
+  <data-dir>/collocated/         GOES crop + matched voxels, one .nc per frame x scan
+  <plot-dir>/                    GOES map, curtain and voxel figures with --plot
                                  (defaults to artifacts/figures)
 
 example:
@@ -34,11 +34,13 @@ def scrape(start, end, data_dir=DATA_DIR, domain="F", keep_raw=False, plot_dir=N
     for frame in frames.get("orbit_and_frame", []):
         labels = earthcare.load(frame)
         collocated = goes.collocate(labels)
-        print(f"{frame}: {labels.sizes['profile']} visible profiles, {len(collocated)} collocated scans")
+        print(f"{frame}: {labels.sizes['profile']} visible profiles, {len(collocated)} collocated scans, "
+              f"{sum(p.sizes['voxel'] for p in collocated)} matched voxels")
         for pair in collocated:
             if plotting:
                 plt.close(plotting.track_on_goes(pair, frame=labels))  # close to free memory
                 plt.close(plotting.curtain(pair))
+                plt.close(plotting.voxels(pair))
         pairs += collocated
     return pairs
 
@@ -55,7 +57,7 @@ def main():
     parser.add_argument("--keep-raw", action="store_true",
                         help="keep raw EarthCARE frames and GOES scans after processing")
     parser.add_argument("--plot", action="store_true",
-                        help="save a GOES map and an EarthCARE curtain figure per pair to --plot-dir")
+                        help="save map, curtain and voxel figures per pair to --plot-dir")
     parser.add_argument("--plot-dir", default=FIGURES_DIR)
     args = parser.parse_args()
     scrape(args.start, args.end, args.data_dir, args.domain, args.keep_raw,

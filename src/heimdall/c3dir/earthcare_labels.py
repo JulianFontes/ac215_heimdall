@@ -27,6 +27,12 @@ GOES19_LON = -75.2  # goes-19 sub-satellite longitude
 LEVELS_KM = np.arange(80) * 0.25 + 0.125  # 80 levels every 0.25 km, from the C3DIR paper (section 2.3)
 MASK_THRESHOLD = 1e-5  # g m^-3, cloud/no-cloud cutoff from the C3DIR paper (section 2.2)
 
+# the 9 C3DIR targets (paper sections 2.2-2.3), in the order used everywhere downstream
+WATER = ["iwc", "lwc", "rwc"]  # g m^-3
+RADII = ["ice_radius", "liquid_radius"]  # µm
+MASKS = ["ice_mask", "liquid_mask", "rain_mask", "hydrometeor_mask"]  # 0/1
+TARGETS = WATER + RADII + MASKS
+
 
 class EarthCareLabels:
     """
