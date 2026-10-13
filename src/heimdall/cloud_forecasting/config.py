@@ -6,5 +6,5 @@ ALT_MAX = 16.0                 # crop the volume below this altitude (km)
 T_IN = 6                       # input hours
 HIDDEN = (16, 16)              # hidden channels per ConvLSTM layer
 VAL_FRAC = 0.2                 # last fraction of the time axis held out for validation (80/20)
-K = 1                          # number of one-hour-ahead forecasts in a row
+K = 3                          # number of one-hour-ahead forecasts in a row
 SEED = 0

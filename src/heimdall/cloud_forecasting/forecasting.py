@@ -13,13 +13,13 @@ Files:  config.py      constants and fixed settings
         evaluation.py  loss, CSI / F1, validation pass
         plots.py       training curves, best model vs persistence, height-longitude forecast sections
         forecasting.py this script: the training loop
+        plot_forecasts.py height-longitude forecast plots from a saved checkpoint
 
 Outputs (in the --out folder, default runs/):
     convlstm3d_best.pt   best checkpoint
     history.csv          per-epoch losses and validation scores
     curves.png           train/val loss + validation CSI per epoch, persistence CSI as dashed lines
     vs_persistence.png   validation CSI: best model vs persistence
-    forecast_height_lon/ one height-longitude forecast plot per validation stretch
 
 Example: python forecasting.py -p c3dir_like_era5_20260601_20260603_N45_5_W74_S39_5_E68.nc --epochs 20
 """
@@ -31,11 +31,11 @@ import pandas as pd
 import torch
 from tqdm.auto import tqdm
 
-from config import ALT_MAX, HIDDEN, N_CH, SEED, CLOUD_PROPERTIES, T_IN, VAL_FRAC, K
+from config import ALT_MAX, HIDDEN, N_CH, SEED, CLOUD_PROPERTIES, T_IN, VAL_FRAC
 from data import load_channels, make_loader, split_batch
 from evaluation import evaluate, weighted_bce
 from model import ConvLSTM3d
-from plots import plot_curves, plot_vs_persistence, plot_height_lon_sequence
+from plots import plot_curves, plot_vs_persistence
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -125,25 +125,6 @@ def main():
 
     print("Running evaluation on the validation set...")
     _, final, _ = evaluate(model, val_dl, pos_w, device, desc="final")
-
-    # forecasts over time: k one-hour-ahead forecasts in a row, on every validation stretch
-    k = min(K, len(val_dl.dataset))
-    val = x.isel(time=slice(split, None))
-    w = torch.from_numpy(val.values) # (hours, channel, alt, lat, lon)
-    plot_dir = out / "forecast_height_lon"
-    plot_dir.mkdir(exist_ok=True)
-
-    model.eval()
-    starts = range(0, len(w) - T_IN - k + 1, k) # next stretch forecasts the next k hours
-    for start in tqdm(starts, desc="forecast plots"):
-        seq = w[start:start + T_IN + k] # T_IN input hours + k forecasted hours
-        x_in = torch.stack([seq[j:j + T_IN, :N_CH] for j in range(k)]) # window j forecasts hour T_IN + j
-        with torch.no_grad():
-            prob = torch.sigmoid(model(x_in.to(device))).cpu().numpy()
-        times = pd.to_datetime(val.time.values[start:start + T_IN + k])
-        plot_height_lon_sequence(seq[:, 3:N_CH].numpy(), prob, seq[:, N_CH].numpy(), x.alt.values, x.longitude.values,
-                                 times, plot_dir / f"{times[T_IN]:%Y-%m-%d_%H}h.png")
-
     plot_vs_persistence(final, base, out / "vs_persistence.png")
 
     print(f"\nsaved checkpoint, history and plots to {out}/")
