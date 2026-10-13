@@ -8,7 +8,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.ticker import MaxNLocator
 from matplotlib.transforms import Bbox
 
-from config import CLOUD_PROPERTIES
+from .config import CLOUD_PROPERTIES
 
 INK, MUTED, GRID = "#1f1f1e", "#6f6e69", "#e4e3dd"
 COLORS = dict(zip(CLOUD_PROPERTIES, ["#2a78d6", "#eb6834", "#1baf7a"]))      # one colour per cloud property

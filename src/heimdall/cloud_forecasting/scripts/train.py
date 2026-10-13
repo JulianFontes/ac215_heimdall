@@ -12,8 +12,8 @@ Files:  config.py      constants and fixed settings
         model.py       ConvLSTM3d
         evaluation.py  loss, CSI / F1, validation pass
         plots.py       training curves, best model vs persistence, height-longitude forecast sections
-        forecasting.py this script: the training loop
-        plot_forecasts.py height-longitude forecast plots from a saved checkpoint
+        scripts/train.py          this script: the training loop
+        scripts/plot_forecasts.py height-longitude forecast plots from a saved checkpoint
 
 Outputs (in the --out folder, default runs/):
     convlstm3d_best.pt   best checkpoint
@@ -21,7 +21,7 @@ Outputs (in the --out folder, default runs/):
     curves.png           train/val loss + validation CSI per epoch, persistence CSI as dashed lines
     vs_persistence.png   validation CSI: best model vs persistence
 
-Example: python forecasting.py -p c3dir_like_era5_20260601_20260603_N45_5_W74_S39_5_E68.nc --epochs 20
+Example: python -m heimdall.cloud_forecasting.scripts.train -p c3dir_like_era5_20260601_20260603_N45_5_W74_S39_5_E68.nc --epochs 20
 """
 print('Importing python packages ...')
 import argparse
@@ -32,11 +32,11 @@ import pandas as pd
 import torch
 from tqdm.auto import tqdm
 
-from config import ALT_MAX, HIDDEN, N_CH, SEED, CLOUD_PROPERTIES, T_IN, VAL_FRAC
-from data import load_channels, make_loader, split_batch
-from evaluation import evaluate, weighted_bce
-from model import ConvLSTM3d
-from plots import plot_curves, plot_vs_persistence
+from heimdall.cloud_forecasting.config import ALT_MAX, HIDDEN, N_CH, SEED, CLOUD_PROPERTIES, T_IN, VAL_FRAC
+from heimdall.cloud_forecasting.data import load_channels, make_loader, split_batch
+from heimdall.cloud_forecasting.evaluation import evaluate, weighted_bce
+from heimdall.cloud_forecasting.model import ConvLSTM3d
+from heimdall.cloud_forecasting.plots import plot_curves, plot_vs_persistence
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)

@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 
-from config import N_CH
+from .config import N_CH
 
 class ConvLSTM3dCell(nn.Module):
     def __init__(self, c_in, c_hid, k=3):

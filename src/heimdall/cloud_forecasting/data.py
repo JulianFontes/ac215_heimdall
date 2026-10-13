@@ -5,7 +5,7 @@ import xbatcher
 from torch.utils.data import DataLoader
 from xbatcher.loaders.torch import MapDataset
 
-from config import N_CH, S0, CLOUD_PROPERTIES
+from .config import N_CH, S0, CLOUD_PROPERTIES
 
 def load_channels(path, alt_max):
     """DataArray (time, channel, alt, lat, lon): 3 scaled contents, 3 masks, 1 validity flag (last, not a model input)."""

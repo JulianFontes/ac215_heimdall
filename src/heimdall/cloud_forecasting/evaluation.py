@@ -5,8 +5,8 @@ import torch.nn.functional as F
 from torchmetrics.classification import BinaryF1Score, BinaryJaccardIndex
 from tqdm.auto import tqdm
 
-from config import N_CH, CLOUD_PROPERTIES
-from data import split_batch
+from .config import N_CH, CLOUD_PROPERTIES
+from .data import split_batch
 
 def weighted_bce(logits, y, valid, pos_w):
     bce = F.binary_cross_entropy_with_logits(logits, y, pos_weight=pos_w.view(1, -1, 1, 1, 1), reduction="none")

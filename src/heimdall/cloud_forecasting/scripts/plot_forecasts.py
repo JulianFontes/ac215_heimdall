@@ -9,8 +9,8 @@ plot_height_lon_compare figure per stretch (T_IN observed hours, then K forecast
 Outputs (in the --out folder, default runs/forecast_height_lon_k{K}/):
     {YYYY-mm-dd_HH}h.png  one plot per stretch, named after its first forecasted hour
 
-Example: python plot_forecasts.py -p c3dir_like_era5_20260601_20260615_N45.5_W74_S39.5_E68.nc \
-             -c ../../../training_runs/15day_epoch50/convlstm3d_best.pt -k 4
+Example: python -m heimdall.cloud_forecasting.scripts.plot_forecasts -p c3dir_like_era5_20260601_20260615_N45.5_W74_S39.5_E68.nc \
+             -c training_runs/15day_epoch50/convlstm3d_best.pt -k 4
 (-k defaults to K in config.py)
 """
 import argparse
@@ -20,15 +20,15 @@ import pandas as pd
 import torch
 from tqdm.auto import tqdm
 
-from config import K, N_CH, VAL_FRAC
-from data import load_channels
-from model import ConvLSTM3d
-from plots import plot_height_lon_compare
+from heimdall.cloud_forecasting.config import K, N_CH, VAL_FRAC
+from heimdall.cloud_forecasting.data import load_channels
+from heimdall.cloud_forecasting.model import ConvLSTM3d
+from heimdall.cloud_forecasting.plots import plot_height_lon_compare
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("-p", "--path", required=True, help="c3dir_like_*.nc")
-    p.add_argument("-c", "--ckpt", required=True, help="convlstm3d_best.pt from forecasting.py")
+    p.add_argument("-c", "--ckpt", required=True, help="convlstm3d_best.pt from scripts/train.py")
     p.add_argument("-k", "--k", type=int, default=K, help=f"forecasted hours per plot (default: K={K} from config.py)")
     p.add_argument("--stride", type=int, default=None, help="hours between stretch starts (default: k, no overlap)")
     p.add_argument("--out", default=None, help="output folder (default runs/forecast_height_lon_k{K}, created if missing)")
