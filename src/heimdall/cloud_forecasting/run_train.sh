@@ -11,7 +11,7 @@ OUT=training_runs/june2026_epoch100
 
 uv run python src/heimdall/cloud_forecasting/forecasting.py \
   -p "$DATA" \
-  --epochs 1 \
+  --epochs 100 \
   --out "$OUT" \
   "$@"
 
