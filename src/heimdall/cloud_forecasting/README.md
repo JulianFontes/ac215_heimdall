@@ -58,7 +58,7 @@ uv run python -m heimdall.cloud_forecasting.scripts.predict \
 
 Each forecast hour is a one-hour-ahead prediction from the T_IN observed hours before it, as in `plot_forecasts.py`, so the volume must cover T_IN hours before `--start` and the K hours after. The files have the same columns as the frontend's sample data plus `cloud_type` (ice / liquid / rain, the most likely type in the bin). Every valid bin is exported (no thresholding; filter on `confidence` in Kepler instead), with `confidence` = that type's probability and `density` = 100 * P(any cloud type). `--start` defaults to the latest start the volume allows; `--out` writes elsewhere.
 
-The `--history` observed hours before `--start` (default T_IN, the model's inputs; `0` = none) are exported too, so the frontend timeline plays the observations into the forecast. Every row has a `source` column (`observed` / `forecast`); observed bins come from the ERA5 masks, so their `density` is 0 or 100, and clear-air bins have `cloud_type` `none`.
+Only the forecast hours are exported by default. `--history N` also exports the N observed hours before `--start` (e.g. `--history 6`, the model's inputs), so the frontend timeline plays the observations into the forecast. Every row has a `source` column (`observed` / `forecast`); observed bins come from the ERA5 masks, so their `density` is 0 or 100, and clear-air bins have `cloud_type` `none`.
 
 `meta.json` also records how the forecast was made under `"run"`: checkpoint and data paths, `-k` / `--start`, the forecast hours, whether they fall in the model's training period, the model settings and training arguments stored in the checkpoint, and when it was run.
 
