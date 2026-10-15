@@ -74,6 +74,7 @@ The `--history` observed hours before `--start` (default T_IN, the model's input
 | `scripts/train.py` | Entry point and training loop |
 | `scripts/plot_forecasts.py` | Height-longitude forecast plots from a saved checkpoint |
 | `scripts/predict.py` | K-hour forecast from a saved checkpoint, exported for `heimdall-frontend` |
+| `scripts/forecast_video.py` | MP4 of validation cases, observed vs forecast side by side (map + height-longitude section) |
 | `scripts/run_train.sh` | Default training run (train, then plot forecasts) |
 
 Library modules sit at the top of the package and can be imported, e.g. `from heimdall.cloud_forecasting.model import ConvLSTM3d`. Runnable entry points go in `scripts/` and run with `python -m heimdall.cloud_forecasting.scripts.<name>`.
