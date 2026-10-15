@@ -37,7 +37,7 @@ def prepare_data(path, batch_size):
     test_loader = make_loader(test, batch_size, shuffle=False)
     if train_loader is None or val_loader is None:
         raise ValueError("Not enough frames for the train / validation split: need more data or a smaller T_IN + T_OUT in config.py")
-    print(f"  windows: train={len(train_loader.dataset)} val={len(val_loader.dataset)} test={len(test_loader.dataset) if test_loader else 0}")
+    describe_splits({"train": (train, train_loader), "val": (val, val_loader), "test": (test, test_loader)})
     return Data(train_loader, val_loader, test_loader,
                 mean=scaler.mean_.astype("float32"), std=scaler.scale_.astype("float32"), # float32: MPS has no float64
                 units=dict(zip(BANDS, x["units"].values.tolist())))
@@ -48,6 +48,18 @@ def find_files(path):
     if not files:
         raise FileNotFoundError(f"No files found for {path!r}")
     return files
+
+def describe_splits(splits):
+    """Print the time range, frames and windows (samples) of every split, and the totals. splits: {name: (frames, loader)}."""
+    minute = lambda t: str(np.datetime64(t, "m")).replace("T", " ")
+    print("  split  time (UTC)                               frames  windows")
+    frames = windows = 0
+    for name, (x, loader) in splits.items():
+        n, w = x.sizes["time"], len(loader.dataset) if loader is not None else 0
+        span = f"{minute(x.time.values[0])} -> {minute(x.time.values[-1])}" if n else "none"
+        print(f"  {name:<6} {span:<40} {n:>6}  {w:>7}")
+        frames, windows = frames + n, windows + w
+    print(f"  {'total':<6} {'':<40} {frames:>6}  {windows:>7}")
 
 def load_file(f):
     with xr.open_dataset(f) as ds:
