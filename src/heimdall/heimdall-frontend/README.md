@@ -13,6 +13,18 @@ no account, no token. Set `VITE_MAPBOX_TOKEN=pk....` in `.env` only if you want 
 ./start_frontend.sh             # checks Node, installs deps, generates data, starts the server
 ```
 
+## Run with Docker
+The image is the built static app served by nginx. Data is not baked in: `public/data` is bind-mounted, so new
+`predict.py` output shows up on a browser refresh with no rebuild. Generate data first (`npm run data` or `predict.py`).
+Easiest: from the repo root run `docker compose up --build` (see `docker-compose.yml`; put `VITE_MAPBOX_TOKEN=pk....`
+in a `.env` next to it if you want the token). Or by hand from this folder:
+```bash
+docker build -t heimdall-frontend .                                  # no Mapbox token
+docker build -t heimdall-frontend --build-arg VITE_MAPBOX_TOKEN=pk.... .   # with token (baked in at build time)
+docker run --rm -p 8080:80 -v "$(pwd)/public/data:/usr/share/nginx/html/data:ro" heimdall-frontend
+```
+Then open http://localhost:8080.
+
 ## Our Own Data
 This will be updated once we serve data from our models to the front end. As of now the current frontend generates and loads in default cloud points and voxels. Note that this data was AI generated with the minimum values required to visualize and demonstrate the filtering.
 - `public/data/points.csv`: `lat, lon, alt, density, confidence, timestamp` (alt in metres, timestamp as `YYYY-MM-DD HH:mm:ss` UTC)

@@ -1,0 +1,17 @@
+# Heimdall services. Run from this folder:  docker compose up --build
+# Then open http://localhost:8080
+
+services:
+  frontend:
+    build:
+      context: ./src/heimdall/heimdall-frontend
+      args:
+        # Optional; baked into the JS bundle at build time. Set it in ./.env (next to this file) or export it in your shell.
+        VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN:-}
+    image: heimdall-frontend
+    ports:
+      - "8080:80"
+    volumes:
+      # Bind mount: forecasts / sample data written here are served live so no rebuild needed
+      - ./src/heimdall/heimdall-frontend/public/data:/usr/share/nginx/html/data:ro
+    restart: unless-stopped
