@@ -5,8 +5,8 @@ in the same format as the frontend's sample data plus a cloud_type label.
 
 Each forecast hour is a one-hour-ahead prediction from the T_IN observed hours before it (the same
 convention as scripts/plot_forecasts.py), so the volume must cover T_IN hours before --start and
-the K forecasted hours themselves. The --history observed hours before --start (default T_IN, the model's inputs)
-are exported too, so the frontend timeline plays the observations into the forecast.
+the K forecasted hours themselves. Only the forecast hours are exported by default; --history N also exports the
+N observed hours before --start (up to T_IN, the model's inputs), so the frontend timeline plays them into the forecast.
 
 Every valid (hour, alt, lat, lon) bin is exported, with no thresholding (bins outside the ERA5 column are skipped):
     cloud_type   the most likely cloud type (ice / liquid / rain), or none where all three are 0 (observed clear air)
@@ -71,8 +71,8 @@ def main():
     p.add_argument("-c", "--ckpt", required=True, help="convlstm3d_best.pt from scripts/train.py")
     p.add_argument("-k", "--k", type=int, default=K, help=f"forecast hours (default: K={K} from config.py)")
     p.add_argument("--start", default=None, help="first forecasted hour, e.g. '2026-06-20 00:00' (default: latest possible)")
-    p.add_argument("--history", type=int, default=None,
-                   help="observed hours to export before the forecast (default: T_IN from the checkpoint, 0 = none)")
+    p.add_argument("--history", type=int, default=0,
+                   help="observed hours to export before the forecast (default 0 = forecast only)")
     p.add_argument("--out", default=str(FRONTEND_DATA), help="output folder (default: heimdall-frontend/public/data)")
     a = p.parse_args()
 
@@ -95,7 +95,7 @@ def main():
     if s < t_in or s + k > n:
         raise SystemExit(f"need T_IN={t_in} hours before --start and K={k} after it; "
                          f"forecast starts can run from {times[t_in]} to {times[n - k]}")
-    h = t_in if a.history is None else min(a.history, s) # observed hours to export before the forecast
+    h = min(a.history, s) # observed hours to export before the forecast
     in_training = s < int(n * (1 - VAL_FRAC))
     if in_training:
         print(f"note: {times[s]} is in the training period of this volume, so the model has seen these hours")
