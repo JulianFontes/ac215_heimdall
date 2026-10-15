@@ -42,6 +42,7 @@ def main():
 
     #* Data Loading + Conditioning
     # chronological split, normalization from the training frames only
+    print(f"Loading data from {args.path}...")
     data = prepare_data(args.path, args.batch)
     stats = (torch.tensor(data.mean[TARGET_IDX], device=device), torch.tensor(data.std[TARGET_IDX], device=device))
 

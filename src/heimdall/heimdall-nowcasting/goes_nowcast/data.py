@@ -65,7 +65,7 @@ def load_file(f):
         ds = ds.rename(t="time")
         cmi = xr.concat([ds[f"CMI_C{b:02d}"].reset_coords(drop=True) for b in BANDS], dim="channel").assign_coords(channel=[f"C{b:02d}" for b in BANDS])
         valid = cmi.notnull().all("channel") # a pixel is valid only if every band has a value; invalid pixels are ignored by loss and metrics
-        cmi = cmi.where(valid) # bad pixels become NaN (ignored in the statistics, filled after normalizing)
+        cmi.values[:, ~valid.values] = np.nan # in place, no copy: bad pixels become NaN in every band (ignored in the statistics, filled after normalizing)
         units = [ds[f"CMI_C{b:02d}"].attrs["units"] for b in BANDS] + [""] # as stored in the file: "K", or "1" (dimensionless) for reflectance
         return xr.concat([cmi, valid.expand_dims(channel=["valid"])], dim="channel").assign_coords(units=("channel", units)).load()
 
