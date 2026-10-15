@@ -10,7 +10,7 @@ Every frame shows any cloud (ice, liquid or rain) in two views, on one 0-100 % c
     map view    % of the altitude levels above each point that are cloudy (observed) / expected % (forecast)
     side view   height-longitude section: % of latitudes that are cloudy (observed) / expected % (forecast)
 
-Example: python -m heimdall.cloud_forecasting.scripts.forecast_video -p data/era5/boston_subset/c3dir_like_june2026_N45.5_W74_S39.5_E68.nc \
+Example: python -m cloud_forecasting.scripts.forecast_video -p data/era5/boston_subset/c3dir_like_june2026_N45.5_W74_S39.5_E68.nc \
              -c training_runs/training_runs/june2026_epoch100/convlstm3d_best.pt -k 6 --cases 4
 (output defaults to forecast_vs_observed_k{K}.mp4 next to the checkpoint)
 """
@@ -28,10 +28,10 @@ from matplotlib.animation import FFMpegWriter
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import PercentFormatter
 
-from heimdall.cloud_forecasting.config import K, N_CH, VAL_FRAC
-from heimdall.cloud_forecasting.data import load_channels
-from heimdall.cloud_forecasting.model import ConvLSTM3d
-from heimdall.cloud_forecasting.plots import lat_mean
+from cloud_forecasting.config import K, N_CH, VAL_FRAC
+from cloud_forecasting.data import load_channels
+from cloud_forecasting.model import ConvLSTM3d
+from cloud_forecasting.plots import lat_mean
 
 plt.rcParams["animation.ffmpeg_path"] = imageio_ffmpeg.get_ffmpeg_exe() # bundled ffmpeg, no system install needed
 SKY = LinearSegmentedColormap.from_list("sky", ["#0b1d33", "#3d5a7a", "#ffffff"]) # clear sky -> cloud

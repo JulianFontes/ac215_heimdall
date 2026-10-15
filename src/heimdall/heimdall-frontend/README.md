@@ -20,7 +20,7 @@ This will be updated once we serve data from our models to the front end. As of 
 Edit `src/settings.js` to change the defaults (playback speed, filter ranges, layer colours and opacity, camera, basemap).
 `src/config.js` turns those settings into Kepler's config format; edit it only for things `settings.js` doesn't cover.
 
-To show model forecasts instead, run `cloud_forecasting/scripts/predict.py` (see `cloud_forecasting/README.md`). It writes both files with the same columns plus a `cloud_type` label (ice / liquid / rain), and a `meta.json` that sets the timeline start and map centre. Delete the three files to go back to the sample data on the next `./start_frontend.sh`.
+To show model forecasts instead, run `heimdall-nowcasting/cloud_forecasting/scripts/predict.py` (see `heimdall-nowcasting/cloud_forecasting/README.md`). It writes both files with the same columns plus a `cloud_type` label (ice / liquid / rain), and a `meta.json` that sets the timeline start and map centre. Delete the three files to go back to the sample data on the next `./start_frontend.sh`.
 
 ### Time
 Each row is one snapshot (sample data: 12 hourly frames from 2026-10-01 00:00 UTC). The `f-time` filter in `src/config.js`

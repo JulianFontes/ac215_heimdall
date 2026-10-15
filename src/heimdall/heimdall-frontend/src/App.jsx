@@ -57,7 +57,7 @@ export default function App() {
         const [csv, geo, meta] = await Promise.all([
           fetch('/data/points.csv').then(r => r.text()),
           fetch('/data/voxels.geojson').then(r => r.json()),
-          // optional: written alongside model forecasts by cloud_forecasting/scripts/predict.py
+          // optional: written alongside model forecasts by heimdall-nowcasting/cloud_forecasting/scripts/predict.py
           fetch('/data/meta.json').then(r => (r.ok ? r.json() : null)).catch(() => null)
         ]);
         const bounds = regionBounds(geo);

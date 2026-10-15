@@ -69,7 +69,7 @@ export const SETTINGS = {
   overlayBlending: 'screen',
 
   // Time range and map centre for the sample data; must match T0 / STEP_MS in scripts/generate-data.mjs.
-  // Forecasts take these from public/data/meta.json (written by cloud_forecasting/scripts/predict.py).
+  // Forecasts take these from public/data/meta.json (written by heimdall-nowcasting/cloud_forecasting/scripts/predict.py).
   sample: {
     t0_ms: Date.UTC(2026, 9, 1),
     step_ms: 3600e3,

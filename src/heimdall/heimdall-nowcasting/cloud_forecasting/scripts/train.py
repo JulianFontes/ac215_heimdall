@@ -21,9 +21,8 @@ Outputs (in the --out folder, default runs/):
     curves.png           train/val loss + validation CSI per epoch, persistence CSI as dashed lines
     vs_persistence.png   validation CSI: best model vs persistence
 
-Example: python -m heimdall.cloud_forecasting.scripts.train -p c3dir_like_era5_20260601_20260603_N45_5_W74_S39_5_E68.nc --epochs 20
+Example: python -m cloud_forecasting.scripts.train -p c3dir_like_era5_20260601_20260603_N45_5_W74_S39_5_E68.nc --epochs 20
 """
-print('Importing python packages ...')
 import argparse
 from pathlib import Path
 
@@ -32,11 +31,11 @@ import pandas as pd
 import torch
 from tqdm.auto import tqdm
 
-from heimdall.cloud_forecasting.config import ALT_MAX, HIDDEN, N_CH, SEED, CLOUD_PROPERTIES, T_IN, VAL_FRAC
-from heimdall.cloud_forecasting.data import load_channels, make_loader, split_batch
-from heimdall.cloud_forecasting.evaluation import evaluate, weighted_bce
-from heimdall.cloud_forecasting.model import ConvLSTM3d
-from heimdall.cloud_forecasting.plots import plot_curves, plot_vs_persistence
+from cloud_forecasting.config import ALT_MAX, HIDDEN, N_CH, SEED, CLOUD_PROPERTIES, T_IN, VAL_FRAC
+from cloud_forecasting.data import load_channels, make_loader, split_batch
+from cloud_forecasting.evaluation import evaluate, weighted_bce
+from cloud_forecasting.model import ConvLSTM3d
+from cloud_forecasting.plots import plot_curves, plot_vs_persistence
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)

@@ -21,7 +21,7 @@ Outputs (in the --out folder, default heimdall-frontend/public/data/, overwritin
     meta.json       time range (observed + forecast hours), first forecast hour and map centre, read by the frontend,
                     plus a "run" record of how the forecast was made (checkpoint, data, settings; ignored by the frontend)
 
-Example: python -m heimdall.cloud_forecasting.scripts.predict -p data/era5/boston_subset/c3dir_like_june2026_N45.5_W74_S39.5_E68.nc \
+Example: python -m cloud_forecasting.scripts.predict -p data/era5/boston_subset/c3dir_like_june2026_N45.5_W74_S39.5_E68.nc \
              -c training_runs/testing/convlstm3d_best.pt -k 6 --start "2026-06-20 00:00"
 (-k defaults to K in config.py, --start defaults to the latest start the volume allows)
 """
@@ -37,11 +37,11 @@ import shapely
 import torch
 import xarray as xr
 
-from heimdall.cloud_forecasting.config import CLOUD_PROPERTIES, K, N_CH, VAL_FRAC
-from heimdall.cloud_forecasting.data import load_channels
-from heimdall.cloud_forecasting.model import ConvLSTM3d
+from cloud_forecasting.config import CLOUD_PROPERTIES, K, N_CH, VAL_FRAC
+from cloud_forecasting.data import load_channels
+from cloud_forecasting.model import ConvLSTM3d
 
-FRONTEND_DATA = Path(__file__).resolve().parents[2] / "heimdall-frontend" / "public" / "data"
+FRONTEND_DATA = Path(__file__).resolve().parents[3] / "heimdall-frontend" / "public" / "data"
 
 def to_table(prob, valid, forecast_start):
     """prob: DataArray (time, cloud_type, alt, latitude, longitude) -> DataFrame with one row per valid bin.

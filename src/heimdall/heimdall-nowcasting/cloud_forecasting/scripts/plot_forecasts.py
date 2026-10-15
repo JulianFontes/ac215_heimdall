@@ -9,7 +9,7 @@ plot_height_lon_compare figure per stretch (T_IN observed hours, then K forecast
 Outputs (in the --out folder, default runs/forecast_height_lon_k{K}/):
     {YYYY-mm-dd_HH}h.png  one plot per stretch, named after its first forecasted hour
 
-Example: python -m heimdall.cloud_forecasting.scripts.plot_forecasts -p c3dir_like_era5_20260601_20260615_N45.5_W74_S39.5_E68.nc \
+Example: python -m cloud_forecasting.scripts.plot_forecasts -p c3dir_like_era5_20260601_20260615_N45.5_W74_S39.5_E68.nc \
              -c training_runs/15day_epoch50/convlstm3d_best.pt -k 4
 (-k defaults to K in config.py)
 """
@@ -20,10 +20,10 @@ import pandas as pd
 import torch
 from tqdm.auto import tqdm
 
-from heimdall.cloud_forecasting.config import K, N_CH, VAL_FRAC
-from heimdall.cloud_forecasting.data import load_channels
-from heimdall.cloud_forecasting.model import ConvLSTM3d
-from heimdall.cloud_forecasting.plots import plot_height_lon_compare
+from cloud_forecasting.config import K, N_CH, VAL_FRAC
+from cloud_forecasting.data import load_channels
+from cloud_forecasting.model import ConvLSTM3d
+from cloud_forecasting.plots import plot_height_lon_compare
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)

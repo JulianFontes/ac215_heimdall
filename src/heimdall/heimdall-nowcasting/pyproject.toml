@@ -1,10 +1,11 @@
 [project]
-name = "heimdall"
+name = "heimdall-nowcasting"
 version = "0.1.0"
 requires-python = ">=3.14, <3.15"
 dependencies = [
     "geopandas",
     "imageio",
+    "imageio-ffmpeg",
     "ipykernel",
     "ipywidgets",
     "matplotlib",
@@ -22,3 +23,8 @@ dependencies = [
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]
 build-backend = "uv_build"
+
+# Flat layout: goes_nowcast/ and cloud_forecasting/ sit next to this file.
+[tool.uv.build-backend]
+module-root = ""
+module-name = ["goes_nowcast", "cloud_forecasting"]

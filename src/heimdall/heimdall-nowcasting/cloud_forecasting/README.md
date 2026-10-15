@@ -9,19 +9,19 @@ Until real C3DIR data is available, training uses C3DIR-like volumes derived fro
 From the top folder of the `heimdall` repo:
 
 ```bash
-./src/heimdall/cloud_forecasting/scripts/run_train.sh --help
+./src/heimdall/heimdall-nowcasting/cloud_forecasting/scripts/run_train.sh --help
 ```
 
 This trains on a subset for a set number of epochs and writes to a user input directory. Extra arguments are passed through to `scripts/train.py` and override the defaults:
 
 ```bash
-./src/heimdall/cloud_forecasting/scripts/run_train.sh --epochs 5 --out training_runs/quick_test
+./src/heimdall/heimdall-nowcasting/cloud_forecasting/scripts/run_train.sh --epochs 5 --out training_runs/quick_test
 ```
 
 To run on a different file, one can update the `run_train.sh` script or run the training module directly from the project root:
 
 ```bash
-uv run python -m heimdall.cloud_forecasting.scripts.train \
+uv run --project src/heimdall/heimdall-nowcasting python -m cloud_forecasting.scripts.train \
   -p data/era5/boston_subset/c3dir_like_era5_20260601_20260603_N45.5_W74_S39.5_E68.nc \
   --epochs 20 --out training_runs/3day
 ```
@@ -51,7 +51,7 @@ Written to the `--out` folder:
 `scripts/predict.py` runs a checkpoint for K forecast hours and writes `voxels.geojson`, `points.csv` and `meta.json` to `heimdall-frontend/public/data/` (overwriting the sample data), so `./start_frontend.sh` shows the forecast:
 
 ```bash
-uv run python -m heimdall.cloud_forecasting.scripts.predict \
+uv run --project src/heimdall/heimdall-nowcasting python -m cloud_forecasting.scripts.predict \
   -p data/era5/boston_subset/c3dir_like_june2026_N45.5_W74_S39.5_E68.nc \
   -c training_runs/testing/convlstm3d_best.pt -k 6 --start "2026-06-20 00:00"
 ```
@@ -77,4 +77,4 @@ Only the forecast hours are exported by default. `--history N` also exports the 
 | `scripts/forecast_video.py` | MP4 of validation cases, observed vs forecast side by side (map + height-longitude section) |
 | `scripts/run_train.sh` | Default training run (train, then plot forecasts) |
 
-Library modules sit at the top of the package and can be imported, e.g. `from heimdall.cloud_forecasting.model import ConvLSTM3d`. Runnable entry points go in `scripts/` and run with `python -m heimdall.cloud_forecasting.scripts.<name>`.
+Library modules sit at the top of the package and can be imported, e.g. `from cloud_forecasting.model import ConvLSTM3d`. Runnable entry points go in `scripts/` and run with `python -m cloud_forecasting.scripts.<name>`.
