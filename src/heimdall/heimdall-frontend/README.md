@@ -17,12 +17,16 @@ no account, no token. Set `VITE_MAPBOX_TOKEN=pk....` in `.env` only if you want 
 This will be updated once we serve data from our models to the front end. As of now the current frontend generates and loads in default cloud points and voxels. Note that this data was AI generated with the minimum values required to visualize and demonstrate the filtering.
 - `public/data/points.csv`: `lat, lon, alt, density, confidence, timestamp` (alt in metres, timestamp as `YYYY-MM-DD HH:mm:ss` UTC)
 - `public/data/voxels.geojson`: square Polygons with z = base altitude and properties `density, confidence, points, base_alt_m, height_m, timestamp`
-Edit `src/config.js` to change layers, colors and filters.
+Edit `src/settings.js` to change the defaults (playback speed, filter ranges, layer colours and opacity, camera, basemap).
+`src/config.js` turns those settings into Kepler's config format; edit it only for things `settings.js` doesn't cover.
+
+To show model forecasts instead, run `cloud_forecasting/scripts/predict.py` (see `cloud_forecasting/README.md`). It writes both files with the same columns plus a `cloud_type` label (ice / liquid / rain), and a `meta.json` that sets the timeline start and map centre. Delete the three files to go back to the sample data on the next `./start_frontend.sh`.
 
 ### Time
 Each row is one snapshot (sample data: 12 hourly frames from 2026-10-01 00:00 UTC). The `f-time` filter in `src/config.js`
 drives Kepler's timeline at the bottom of the map (press play to animate) and is shared by both layers.
-If you change the time range of your data, update `T0` / `STEP_MS` in `src/config.js`, or just drag the timeline handles.
+If you change the time range of the sample data, update `sample.t0_ms` / `sample.step_ms` in `src/settings.js`, or just drag the timeline handles
+(forecasts take theirs from `meta.json`).
 
 ## Working inside iCloud Drive (macOS)
 `node_modules` contains tens of thousands of files and iCloud will try to sync them, which slows installs and can corrupt them.

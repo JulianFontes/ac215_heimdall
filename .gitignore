@@ -4,6 +4,7 @@ __pycache__/
 
 # User directories
 data/*
+src/heimdall/heimdall-frontend/public/data/*
 training_runs/
 sandbox/
 .earthcare_config/*
