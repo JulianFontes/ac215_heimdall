@@ -4,7 +4,7 @@
 set -e
 cd "$(git rev-parse --show-toplevel)"  # project root
 
-DATA=data/noaa-goes19/ABI-L2-MCMIPC/concat/MCMIPC_G19_20250701T1200_20250702T0000_capecod.nc
+DATA=data/noaa-goes19/MCMIPC_G19_20250701T1200_20250702T0000_capecod.nc
 OUT=training_runs/capecod_12h
 
 uv run python -m heimdall.goes_nowcast.scripts.train \
