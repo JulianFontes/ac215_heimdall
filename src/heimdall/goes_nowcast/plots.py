@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from matplotlib.lines import Line2D
 
-from .config import STEP_MIN, TARGET_BANDS, T_OUT
+from .config import PLOT_EVERY_MIN, STEP_MIN, TARGET_BANDS, T_OUT
 from .data import split_batch
 from .evaluation import persistence
 
@@ -16,6 +16,10 @@ GRAY, BLUE = "#898781", "#2a78d6"
 
 def unit_label(u):
     return "unitless" if u == "1" else u # "1" is the CF convention for dimensionless (reflectance factor)
+
+def plot_leads():
+    """Indices of the lead times to plot: every PLOT_EVERY_MIN minutes (all lead times if none match)."""
+    return [k for k in range(T_OUT) if (k + 1) * STEP_MIN % PLOT_EVERY_MIN == 0] or list(range(T_OUT))
 
 def by_unit(units):
     """Target bands grouped by unit, in band order: [(unit, [bands]), ...]. Bands with different units cannot share an axis.
@@ -73,16 +77,19 @@ def bars(ax, labels, base, model, fmt):
     ax.spines[["top", "right"]].set_visible(False)
 
 def plot_vs_persistence(r, base, units, path, leads=None):
-    """RMSE of persistence next to the ConvLSTM for every band in config.TARGET_BANDS, at the first and last lead time
-    (or the lead indices in `leads`). Bands are grouped by unit since they cannot share an axis."""
-    leads = leads or sorted({0, T_OUT - 1})
+    """RMSE of persistence next to the ConvLSTM for every band in config.TARGET_BANDS, every PLOT_EVERY_MIN minutes of
+    lead time (or the lead indices in `leads`), at most 3 panels per row. Bands are grouped by unit since they cannot share an axis."""
+    leads = leads or plot_leads()
     groups = by_unit(units)
-    rows = len(groups)
+    ncols = min(3, len(leads))
+    rows_per_group = -(-len(leads) // ncols) # ceil
+    rows = rows_per_group * len(groups)
     width = max(3.6, 0.5 * max(len(bands) for _, bands in groups)) # wide enough for every band label
-    fig = plt.figure(figsize=(width * len(leads), 3.0 * rows + 0.6))
-    gs = fig.add_gridspec(rows, len(leads))
-    for row, (u, bands) in enumerate(groups):
-        for col, k in enumerate(leads):
+    fig = plt.figure(figsize=(width * ncols, 3.0 * rows + 0.6))
+    gs = fig.add_gridspec(rows, ncols)
+    for g, (u, bands) in enumerate(groups):
+        for j, k in enumerate(leads):
+            row, col = g * rows_per_group + j // ncols, j % ncols
             ax = fig.add_subplot(gs[row, col])
             bars(ax, [f"C{b:02d}" for b in bands], [base[f"t{k}_C{b:02d}"]["RMSE"] for b in bands],
                  [r[f"t{k}_C{b:02d}"]["RMSE"] for b in bands], "%.1f" if u == "K" else "%.3f")
@@ -112,17 +119,18 @@ def plot_forecast(model, loader, stats, units, device, out_dir):
         truth, pr, pe = phys(y), phys(pred), phys(pers)
         vmin, vmax = float(truth.min()), float(truth.max())
         emax = float((pe - truth)[ok].abs().quantile(0.99))
-        fig, ax = plt.subplots(5, T_OUT, figsize=(2.2 * T_OUT + 1.0, 10.6), squeeze=False, layout="constrained")
-        for k in range(T_OUT):
+        leads = plot_leads()
+        fig, ax = plt.subplots(5, len(leads), figsize=(2.2 * len(leads) + 1.0, 10.6), squeeze=False, layout="constrained")
+        for c, k in enumerate(leads):
             for row, img in enumerate((truth, pr, pe)):
-                im = ax[row, k].imshow(img[k], vmin=vmin, vmax=vmax, cmap="gray_r")
+                im = ax[row, c].imshow(img[k], vmin=vmin, vmax=vmax, cmap="gray_r")
             for row, f in ((3, pr), (4, pe)):
                 e = f[k] - truth[k]
-                err = ax[row, k].imshow(e, vmin=-emax, vmax=emax, cmap="RdBu_r")
+                err = ax[row, c].imshow(e, vmin=-emax, vmax=emax, cmap="RdBu_r")
                 rmse = float(e[ok[k]].pow(2).mean().sqrt())
-                ax[row, k].text(0.03, 0.97, f"RMSE {rmse:.3g}", transform=ax[row, k].transAxes, va="top", fontsize=8,
+                ax[row, c].text(0.03, 0.97, f"RMSE {rmse:.3g}", transform=ax[row, c].transAxes, va="top", fontsize=8,
                                 bbox=dict(fc="white", ec="none", alpha=0.8, pad=1.5))
-            ax[0, k].set_title(f"+{(k + 1) * STEP_MIN} min", fontsize=9)
+            ax[0, c].set_title(f"+{(k + 1) * STEP_MIN} min", fontsize=9)
         for a, label in zip(ax[:, 0], ("truth", "ConvLSTM", "persistence", "ConvLSTM - truth", "persistence - truth")):
             a.set_ylabel(label)
         for a in ax.ravel():

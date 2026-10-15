@@ -83,6 +83,9 @@ def normalize(train, val, test):
     scaler = StandardScaler().fit(rows(train).values.reshape(-1, N_CH))
     out = []
     for a in (train, val, test):
+        if a.sizes["time"] == 0: # e.g. TEST_FRAC = 0: nothing to normalize, and StandardScaler rejects empty arrays
+            out.append(a)
+            continue
         bands = rows(a)
         z = bands.copy(data=scaler.transform(bands.values.reshape(-1, N_CH)).reshape(bands.shape))
         z = z.transpose("time", "channel", "y", "x").fillna(0)
