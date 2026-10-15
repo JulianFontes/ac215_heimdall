@@ -39,7 +39,7 @@ The default windows (`T_IN = 6`, `T_OUT = 6`) need at least 12 consecutive frame
 - Files are concatenated along time, sorted, and de-duplicated. A time gap larger than 1.5 frames (`MAX_GAP_S` in `data.py`) breaks a sequence, so a window never spans an outage.
 - The split is chronological (first 70% train, next 15% validation, last 15% test). Windows are built inside each split, so no frame is shared between splits.
 - Each band is z-scored with the mean and std of the training frames only.
-- Pixels with `DQF >= 2` (or NaN) in any band are flagged invalid. They are set to the mean after normalizing and ignored by the loss and by every metric.
+- Pixels that are NaN in any band are flagged invalid. They are set to the mean after normalizing and ignored by the loss and by every metric.
 - Visible bands (1-6) change with sun angle and are near zero at night, so they are not in the default `BANDS`.
 
 ## Outputs

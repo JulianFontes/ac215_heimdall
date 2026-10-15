@@ -14,7 +14,6 @@ from .config import BANDS, STEP_MIN, TARGET_BANDS, T_IN, T_OUT, VAL_FRAC, TEST_F
 
 N_CH = len(BANDS)                                   # model input channels
 TARGET_IDX = [BANDS.index(b) for b in TARGET_BANDS] # positions of the target bands among the input channels
-BAD_DQF = 2                                         # pixels with DQF >= this (out of range / no value) are invalid and ignored by loss and metrics
 MAX_GAP_S = 1.5 * STEP_MIN * 60                     # time gap (s) that breaks a sequence, so windows never span a data outage
 
 @dataclass
@@ -65,8 +64,7 @@ def load_file(f):
     with xr.open_dataset(f) as ds:
         ds = ds.rename(t="time")
         cmi = xr.concat([ds[f"CMI_C{b:02d}"].reset_coords(drop=True) for b in BANDS], dim="channel").assign_coords(channel=[f"C{b:02d}" for b in BANDS])
-        dqf = xr.concat([ds[f"DQF_C{b:02d}"].reset_coords(drop=True) for b in BANDS], dim="channel")
-        valid = ((dqf < BAD_DQF) & cmi.notnull()).all("channel") # a pixel is valid only if every band is good (NaN flags count as bad)
+        valid = cmi.notnull().all("channel") # a pixel is valid only if every band has a value; invalid pixels are ignored by loss and metrics
         cmi = cmi.where(valid) # bad pixels become NaN (ignored in the statistics, filled after normalizing)
         units = [ds[f"CMI_C{b:02d}"].attrs["units"] for b in BANDS] + [""] # as stored in the file: "K", or "1" (dimensionless) for reflectance
         return xr.concat([cmi, valid.expand_dims(channel=["valid"])], dim="channel").assign_coords(units=("channel", units)).load()

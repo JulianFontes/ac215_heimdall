@@ -1,4 +1,4 @@
-"""Settings to change between runs. Fixed values (data quality threshold, gradient clipping, seed) live in the module that uses them."""
+"""Settings to change between runs. Fixed values (gradient clipping, seed) live in the module that uses them."""
 BANDS = tuple(range(1, 17))    # ABI bands used as model inputs (1-16); visible bands 1-6 are only usable in daylight
 TARGET_BANDS = BANDS           # bands to forecast, must be a subset of BANDS
 T_IN = 6                       # input frames (30 min)
