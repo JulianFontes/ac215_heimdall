@@ -2,6 +2,7 @@
 
     python -m goes_nowcast.scripts.train -p data/goes19 --epochs 20 --out runs/baseline
 """
+print('Importing python packages...')
 import argparse
 import csv
 import json
