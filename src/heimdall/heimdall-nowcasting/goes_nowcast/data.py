@@ -67,15 +67,18 @@ def load_file(f):
         valid = cmi.notnull().all("channel") # a pixel is valid only if every band has a value; invalid pixels are ignored by loss and metrics
         cmi.values[:, ~valid.values] = np.nan # in place, no copy: bad pixels become NaN in every band (ignored in the statistics, filled after normalizing)
         units = [ds[f"CMI_C{b:02d}"].attrs["units"] for b in BANDS] + [""] # as stored in the file: "K", or "1" (dimensionless) for reflectance
-        return xr.concat([cmi, valid.expand_dims(channel=["valid"])], dim="channel").assign_coords(units=("channel", units)).load()
+        return xr.concat([cmi, valid.expand_dims(channel=["valid"])], dim="channel").assign_coords(units=("channel", units))
 
 def load_channels(path):
     """DataArray (time, channel, y, x): len(BANDS) bands in physical units, 1 validity flag (last, not a model input).
     The unit of every channel, read from the files, is in the `units` coordinate."""
     files = find_files(path)
     print(f"Loading {len(files)} file(s), bands {list(BANDS)}")
-    x = xr.concat([load_file(f) for f in files], dim="time").sortby("time").drop_duplicates("time")
-    x = x.transpose("time", "channel", "y", "x").astype("float32")
+    if len(files) == 1:
+        x = load_file(files[0]) # a single file is already in time order, so skip the concat/sort
+    else:
+        x = xr.concat([load_file(f) for f in files], dim="time").sortby("time").drop_duplicates("time")
+    x = x.transpose("time", "channel", "y", "x").astype("float32", copy=False)
     print(f"  {x.sizes['time']} frames, {x.time.values[0]} -> {x.time.values[-1]}, grid {x.sizes['y']}x{x.sizes['x']}")
     return x
 
@@ -89,6 +92,8 @@ def normalize(train, val, test):
     """z-score every band with the per-band mean / std of the training frames only (StandardScaler, NaN pixels ignored).
     Invalid pixels (NaN) become 0, i.e. the mean; the validity flag is kept as is.
     Returns the three normalized splits and the fitted scaler (scaler.mean_, scaler.scale_)."""
+    
+    print(f"Normalizing the splits")
     rows = lambda a: a.isel(channel=slice(0, N_CH)).transpose("time", "y", "x", "channel") # flattened: one row per pixel, one column per band
     scaler = StandardScaler().fit(rows(train).values.reshape(-1, N_CH))
     out = []

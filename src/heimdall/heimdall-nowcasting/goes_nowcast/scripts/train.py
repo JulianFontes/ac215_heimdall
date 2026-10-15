@@ -11,10 +11,10 @@ import os
 import torch
 from tqdm.auto import tqdm
 
-from ..data import TARGET_IDX, prepare_data, split_batch
-from ..evaluation import evaluate, masked_mse, summary
-from ..model import ConvLSTM
-from ..plots import plot_curves, plot_forecast, plot_vs_persistence
+from goes_nowcast.data import TARGET_IDX, prepare_data, split_batch
+from goes_nowcast.evaluation import evaluate, masked_mse, summary
+from goes_nowcast.model import ConvLSTM
+from goes_nowcast.plots import plot_curves, plot_forecast, plot_vs_persistence
 
 CLIP = 1.0 # gradient-norm clipping
 SEED = 0
@@ -63,15 +63,18 @@ def main():
             torch.nn.utils.clip_grad_norm_(model.parameters(), CLIP)
             opt.step()
             total, n = total + loss.item(), n + 1
+            
         val_loss, val_r, base_r = evaluate(model, data.val, stats, device, with_baseline=True)
         row = {"epoch": epoch, "train_loss": total / n, "val_loss": val_loss}
         row.update({f"val_{k}": v for k, v in summary(val_r).items()})
         row.update({f"base_{k}": v for k, v in summary(base_r).items()})
         history.append(row)
+        
         with open(os.path.join(args.out, "history.csv"), "w", newline="") as f:
             wr = csv.DictWriter(f, fieldnames=list(row))
             wr.writeheader()
             wr.writerows(history)
+            
         saved = val_loss < best
         if saved:
             best = val_loss
