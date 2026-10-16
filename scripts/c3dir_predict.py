@@ -19,7 +19,6 @@ NAME = None  # label and file name for LAT / LON, e.g. "Miami, FL"
 TIME = "latest"  # "latest", or a UTC time like "2025-08-15T18:30"
 DOMAIN = "C"  # GOES "C" CONUS (smaller download) or "F" full disk
 MODEL_VERSION = "latest"  # or e.g. "v002"
-MC_SAMPLES = 20  # > 1 adds an uncertainty band to the column (MC dropout); 1 is fastest
 REGION = True  # also predict the 3D field around the point
 HALF_WIDTH_DEG = 1.0  # region size: +/- this many degrees of latitude (~110 km)
 PLOT_DIR = FIGURES_DIR / "c3dir_predict"
@@ -30,7 +29,7 @@ model = C3DIR.load(MODEL_VERSION)
 scene = goes_scene(TIME, DOMAIN)
 zenith = check_daylight(scene, lat, lon)
 
-column = predict_column(model, scene, lat, lon, samples=MC_SAMPLES)
+column = predict_column(model, scene, lat, lon)
 print(f"C3DIR {model.version} above {name}, GOES-19 scan {scan_time(scene):%Y-%m-%d %H:%M} UTC, "
       f"sun {zenith:.0f}° from overhead")
 for key, value in summary(column).items():

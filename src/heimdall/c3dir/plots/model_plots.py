@@ -287,22 +287,17 @@ def plot_column(column, scene, lat, lon, name, version):
     for s, color in zip(SPECIES, ["k", "tab:blue", "tab:green", "tab:purple"]):
         key = f"prob_{s}"
         ax_p.plot(column[key], z, color=color, label=s.capitalize())
-        if f"{key}_p10" in column:
-            ax_p.fill_betweenx(z, column[f"{key}_p10"], column[f"{key}_p90"], color=color, alpha=0.15, lw=0)
     ax_p.axvline(0.5, color="0.6", ls=":", lw=1)
     ax_p.set_xlim(0, 1)
     ax_p.set_xlabel("Probability")
     ax_p.set_ylabel("Height (km)")
     ax_p.set_title("Hydrometeor probability")
 
-    ax_p.legend(loc="upper right", title="median, band 10-90%", title_fontsize=10)
+    ax_p.legend(loc="upper right")
 
     for w, color in zip(PHASES, ["tab:blue", "tab:green", "tab:purple"]):
         key = f"{w}_water_g_m3"
         ax_w.plot(np.maximum(column[key], 1e-5), z, color=color, label=w.capitalize())
-        if f"{key}_p10" in column:
-            ax_w.fill_betweenx(z, np.maximum(column[f"{key}_p10"], 1e-5), np.maximum(column[f"{key}_p90"], 1e-5),
-                               color=color, alpha=0.15, lw=0)
     ax_w.set_xscale("log")
     ax_w.set_xlim(1e-5, 2)
     ax_w.set_xlabel("Water content (g m$^{-3}$)")

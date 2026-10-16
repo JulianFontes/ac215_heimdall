@@ -14,15 +14,13 @@ from heimdall.c3dir.model.c3dir import MASK_COLUMNS, WATER_COLUMNS, decode_numpy
 from heimdall.c3dir.constants import LEVELS_KM, MASK_THRESHOLD, SPECIES, WATER
 from heimdall.c3dir.geometry import closest_ray, satellite_frame, scan_angles
 
-def predict_samples(model, files, samples=1):
+def predict_samples(model, files):
     """predictions at every matched voxel of each sample file; returns one DataFrame."""
     tables = []
     for path in files:
         with xr.open_dataset(path) as s:
             sample = s.load()
-        out = model.predict_voxels(sample, samples=samples)
-        raw, spread = (out.mean(0), out.std(0)) if samples > 1 else (out, None)
-        probability, water, _ = decode_numpy(raw)
+        probability, water, _ = decode_numpy(model.predict_voxels(sample))
         labels = sample["voxel_labels"].values
         table = pd.DataFrame({"file": path.name, "level": sample["voxel_level"].values,
                               "profile": sample["voxel_profile"].values})
@@ -32,8 +30,6 @@ def predict_samples(model, files, samples=1):
         for k, name in enumerate(WATER):
             table[f"{name}_true"] = labels[:, WATER_COLUMNS[k]]
             table[f"{name}_pred"] = water[:, k]
-        if spread is not None:
-            table["any_logit_std"] = spread[:, :3].max(1)
         tables.append(table)
     return pd.concat(tables, ignore_index=True)
 

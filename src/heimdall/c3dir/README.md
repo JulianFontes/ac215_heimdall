@@ -93,13 +93,12 @@ Runs a saved model on a GOES-19 scan around a point:
 | `SITE` | a SURFRAD station (`bon`, `dra`, `fpk`, `gwn`, `psu`, `sxf`, `tbl`), or `None` to use `LAT` / `LON` |
 | `TIME` | `"latest"` or a UTC time like `"2025-08-15T18:30"` |
 | `MODEL_VERSION` | `"latest"` or e.g. `"v002"` |
-| `MC_SAMPLES` | runs with dropout on, for the 10th–90th percentile band (1 is fastest) |
 | `REGION`, `HALF_WIDTH_DEG` | also predict the 3D field within ± this many degrees |
 
 Outputs:
 - `artifacts/figures/c3dir_predict/<site>_<time>.png` and `.csv`: the column above the
-  point, per level: probabilities, water content (g m⁻³), particle size (µm), voxel lat / lon,
-  and 10th / 90th percentiles.
+  point, per level: probabilities, water content (g m⁻³), particle size (µm), and voxel
+  lat / lon.
 - `<site>_<time>_region.png`: GOES true color and band 13, C3DIR cloud-top height, a 3D
   view, and a west–east cross section.
 - `data/c3dir_predictions/<site>_<time>_region.nc`: the 3D field on a regular
@@ -186,8 +185,6 @@ Following the paper (§4):
   only at the labeled voxels.
 - **Training** (`C3DIR.fit`): AdamW, cosine learning rate 1e-3 → 1e-6, random flips;
   keeps the weights with the lowest validation loss. Settings in `TrainConfig`.
-- **Uncertainty:** `predict_voxels(..., samples=N)` runs the model N times with dropout
-  on (MC dropout) and returns the spread.
 
 ### Versions
 

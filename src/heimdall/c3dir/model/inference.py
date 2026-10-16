@@ -58,11 +58,10 @@ def crop(scene, lat, lon, size=128):
     return scene[BANDS + ["goes_imager_projection"]].isel(y=slice(r0, r0 + size), x=slice(c0, c0 + size)).load()
 
 
-def predict_column(model, scene, lat, lon, samples=1, size=128):
+def predict_column(model, scene, lat, lon, size=128):
     """the predicted column above lat/lon as a DataFrame over the 80 levels: probability of any /
     ice / liquid / rain, water content (g m^-3) and effective radius (um), with each voxel's
-    lat / lon. with samples > 1 (MC dropout), values are the median over the runs, and the 10th /
-    90th percentiles are in *_p10 / *_p90 columns."""
+    lat / lon."""
     patch = crop(scene, lat, lon, size)
     p = patch["goes_imager_projection"].attrs
     x, y = patch.x.values, patch.y.values
@@ -70,18 +69,11 @@ def predict_column(model, scene, lat, lon, samples=1, size=128):
     rows = np.clip(np.rint((vy - y[0]) / (y[1] - y[0])), 0, len(y) - 1).astype(int)
     cols = np.clip(np.rint((vx - x[0]) / (x[1] - x[0])), 0, len(x) - 1).astype(int)
     sample = xr.Dataset({"goes": (("band", "y", "x"), np.stack([patch[b].values for b in BANDS]))})
-    out = model.predict_voxels(sample, (np.arange(len(LEVELS_KM)), rows, cols), window=size, margin=0,
-                               samples=samples)
+    raw = model.predict_voxels(sample, (np.arange(len(LEVELS_KM)), rows, cols), window=size, margin=0)
     # where each voxel sits: the chosen pixel's line of sight at that height
     voxel_lat, voxel_lon = ray_latlon(x[cols], y[rows], LEVELS_KM * 1000.0, p)
-    runs = [_decode(run) for run in (out if samples > 1 else out[None])]
-    values = np.stack([run.to_numpy() for run in runs])  # (samples, 80, outputs)
     table = pd.DataFrame({"height_km": LEVELS_KM, "lat": voxel_lat, "lon": voxel_lon})
-    for k, name in enumerate(runs[0].columns):
-        table[name] = np.median(values[:, :, k], axis=0)
-        if samples > 1:
-            table[f"{name}_p10"], table[f"{name}_p90"] = np.percentile(values[:, :, k], [10, 90], axis=0)
-    return table
+    return pd.concat([table, _decode(raw)], axis=1)
 
 
 def _decode(raw):

@@ -25,7 +25,6 @@ TEST_AFTER = None  # date: days from here go to test
 MODEL = ModelConfig(width=32)  # paper: width 64
 TRAINING = TrainConfig(steps=3000, batch_size=16, eval_every=250)  # paper: 200,000 steps, batch 1,024
 VERSION = None  # None saves as the next v001, v002, ...; or a name like "v003_wide"
-MC_SAMPLES = 1  # > 1 adds MC dropout uncertainty to the test predictions (slower)
 
 # 1. samples and split
 samples = Samples()
@@ -41,7 +40,7 @@ print(f"saved {model.version} to {out}")
 
 # 4. evaluate on the test days
 test_files = C3DIRDataset("test").files
-table = predict_samples(model, test_files, samples=MC_SAMPLES)
+table = predict_samples(model, test_files)
 detection, water = detection_scores(table), water_scores(table)
 print(detection.round(3).to_string(index=False))
 print(water.round(3).to_string(index=False))

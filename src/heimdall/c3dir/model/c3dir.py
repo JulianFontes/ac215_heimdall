@@ -164,23 +164,15 @@ class C3DIR:
 
     # ---- prediction
     @torch.no_grad()
-    def predict_raw(self, x, samples=1):
-        """raw outputs (samples, B, 8, 80, H, W) for normalized patches x (B, 16, H, W). samples > 1
-        keeps dropout on (MC dropout), so each run differs."""
-        x = torch.as_tensor(x, device=self.device)
+    def predict_raw(self, x):
+        """raw outputs (B, 8, 80, H, W) for normalized patches x (B, 16, H, W)."""
         self.net.eval()
-        if samples > 1:
-            for m in self.net.modules():
-                if isinstance(m, torch.nn.Dropout):
-                    m.train()
-        runs = torch.stack([self.net(x) for _ in range(samples)])
-        self.net.eval()
-        return runs
+        return self.net(torch.as_tensor(x, device=self.device))
 
-    def predict_voxels(self, sample, voxels=None, window=128, margin=32, samples=1):
+    def predict_voxels(self, sample, voxels=None, window=128, margin=32):
         """raw outputs (V, 8) at voxels (level, row, col) of a sample's goes crop (default: its
         matched voxels), predicting in overlapping windows so each voxel has context on all
-        sides. with samples > 1, returns every MC dropout run: (samples, V, 8)."""
+        sides."""
         image = (sample["goes"].values - self.mean[:, None, None]) / self.std[:, None, None]
         image = np.nan_to_num(image.astype(np.float32))
         _, height, width = image.shape
@@ -188,19 +180,18 @@ class C3DIR:
         if voxels is None:
             voxels = [sample[f"voxel_{k}"].values for k in ["level", "row", "col"]]
         level, row, col = (np.asarray(v) for v in voxels)
-        runs = np.full((samples, len(level), 8), np.nan, np.float32)
+        raw = np.full((len(level), 8), np.nan, np.float32)
         step = window - 2 * margin
         starts = lambda n: sorted({*range(0, max(n - window, 0), step), max(n - window, 0)})  # noqa: E731
         for r0 in starts(image.shape[1]):
             for c0 in starts(image.shape[2]):
                 inside = ((row >= r0 + (margin if r0 else 0)) & (row < r0 + window) &
-                          (col >= c0 + (margin if c0 else 0)) & (col < c0 + window) & np.isnan(runs[0, :, 0]))
+                          (col >= c0 + (margin if c0 else 0)) & (col < c0 + window) & np.isnan(raw[:, 0]))
                 if not inside.any():
                     continue
-                out = self.predict_raw(image[None, :, r0:r0 + window, c0:c0 + window], samples)
-                pick = (slice(None), 0, slice(None), level[inside], row[inside] - r0, col[inside] - c0)
-                runs[:, inside] = out[pick].permute(0, 2, 1).cpu().numpy()
-        return runs if samples > 1 else runs[0]
+                out = self.predict_raw(image[None, :, r0:r0 + window, c0:c0 + window])
+                raw[inside] = out[0, :, level[inside], row[inside] - r0, col[inside] - c0].T.cpu().numpy()
+        return raw
 
     # ---- saving
     def save(self, version=None, root=MODEL_ROOT):
