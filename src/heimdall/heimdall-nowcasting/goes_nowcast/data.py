@@ -100,7 +100,6 @@ def split_time(x):
     return x.isel(time=slice(0, c1)), x.isel(time=slice(c1, c2)), x.isel(time=slice(c2, n))
 
 def scale(a, scaler):
-    print('Applying scales')
     """Normalize bands while preserving the validity channel."""
     if a.sizes["time"] == 0:
         return a
@@ -108,9 +107,22 @@ def scale(a, scaler):
     # scale each band to z-scores in place to avoid allocating new arrays
     for c in range(N_CH):
         band = a.isel(channel=c)
-        band.data -= scaler.mean_[c]
-        band.data /= scaler.scale_[c]
-        band.data[np.isnan(band.data)] = 0.0 # Replace invalid values without allocating a new array
+        
+        # Sample ~10 valid pixels before normalization to check if it succeeds
+        # This is a sanity check to ensure that the normalization is applied correctly
+        flat = band.data.flat
+        idx = np.linspace(0, band.data.size - 1, min(1000, band.data.size), dtype=int)
+        idx = idx[np.isfinite(flat[idx])][:10]
+        original = np.asarray(flat[idx]).copy()
+        
+        band.data -= scaler.mean_[c] # subtract the training mean (center to 0)
+        band.data /= scaler.scale_[c] # divide by the training std (scale to unit variance)
+        band.data[np.isnan(band.data)] = 0.0 # replace nan values without allocating a new array
+        
+        assert np.allclose(
+            flat[idx], (original - scaler.mean_[c]) / scaler.scale_[c], atol=1e-5
+        ), f"Normalization failed for channel {c}"
+        
     return a
 
 def normalize(train, val, test, batch_size=16):
