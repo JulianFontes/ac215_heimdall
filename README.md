@@ -7,7 +7,7 @@ All services are defined in [`docker-compose.yml`](docker-compose.yml). Run ever
 
 ### Commands
 Everything goes through [`heimdall_docker.sh`](heimdall_docker.sh), a thin wrapper around `docker compose`.
-Leave out the service name to act on every service.
+Leave out the service name to build all services included in `docker-compose.yaml`.
 ```bash
 ./heimdall_docker.sh build [service...]   # build images (add --no-cache for a clean rebuild)
 ./heimdall_docker.sh up    [service...]   # build anything that changed, start in the background
