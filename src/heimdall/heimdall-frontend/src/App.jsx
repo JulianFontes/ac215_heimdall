@@ -55,10 +55,10 @@ export default function App() {
     (async () => {
       try {
         const [csv, geo, meta] = await Promise.all([
-          fetch('/data/points.csv').then(r => r.text()),
-          fetch('/data/voxels.geojson').then(r => r.json()),
+          fetch('/data/points.csv', {cache: 'no-cache'}).then(r => r.text()),
+          fetch('/data/voxels.geojson', {cache: 'no-cache'}).then(r => r.json()),
           // optional: written alongside model forecasts by heimdall-nowcasting/cloud_forecasting/scripts/predict.py
-          fetch('/data/meta.json').then(r => (r.ok ? r.json() : null)).catch(() => null)
+          fetch('/data/meta.json', {cache: 'no-cache'}).then(r => (r.ok ? r.json() : null)).catch(() => null)
         ]);
         const bounds = regionBounds(geo);
         // The card shows the grid's cell centres (39.5-45.5 N), not its outer edges (39.375-45.625 N)
