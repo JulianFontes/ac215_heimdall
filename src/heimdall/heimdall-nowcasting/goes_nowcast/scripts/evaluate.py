@@ -1,6 +1,7 @@
 """Evaluate a saved checkpoint on the validation split (or the test split) and write the plots train.py makes at the end of a run.
 The forecast figures are made for one window per day of the split (forecasts/<date>/), the one starting closest to --hour UTC.
-The data are split as in training (config.VAL_FRAC / TEST_FRAC) and normalized with a StandardScaler rebuilt from the mean / std stored in the checkpoint.
+The frames are those in the run's splits.json (written by train.py), or split with config.VAL_FRAC / TEST_FRAC for older runs,
+and they are normalized with a StandardScaler rebuilt from the mean / std stored in the checkpoint.
 Example (from the project root):
     python -m goes_nowcast.scripts.evaluate -p data/noaa-goes19/aug2025/MCMIPC_G19_20250801T0000_20250808T0000_psu.nc \
         -c training_runs/pcu_week1/convlstm_best.pt
@@ -60,11 +61,21 @@ def main():
 
     x = load_channels(args.path)
     units = dict(zip(BANDS, x["units"].values.tolist())) # as in train.py: {band: unit}
-    _, val, test = split_time(x)
-    split = val if args.split == "val" else test
+    splits_file = os.path.join(os.path.dirname(args.ckpt), "splits.json") # written by train.py: timestamps of the frames in each split
+    if os.path.exists(splits_file):
+        with open(splits_file) as f:
+            times = np.array(json.load(f)[args.split], dtype="datetime64[ns]")
+        if len(times) == 0:
+            raise ValueError(f"The run has no {args.split} frames ({splits_file})")
+        split = x.sel(time=times) # exactly the frames the run used
+        print(f"using the {args.split} timestamps from {splits_file}")
+    else: # runs from before train.py saved splits.json
+        _, val, test = split_time(x)
+        split = val if args.split == "val" else test
+        print(f"no splits.json next to the checkpoint, splitting with config.VAL_FRAC / TEST_FRAC")
     print(f"{args.split}: {split.sizes['time']} frames, {split.time.values[0]} -> {split.time.values[-1]}")
     loader = make_loader(scale(split, scaler), args.batch, shuffle=False)
-    del x, val, test
+    del x, split
     if loader is None:
         raise ValueError(f"The {args.split} split is too short for one window")
 
