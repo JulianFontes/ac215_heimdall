@@ -1,7 +1,7 @@
 # Heimdall frontend: Vite build served as static files by nginx.
 # Data (points.csv, voxels.geojson, meta.json) is NOT baked in; bind-mount it at /usr/share/nginx/html/data.
 
-# ---- Build stage ----
+#* Build stage
 FROM node:22-alpine AS build
 WORKDIR /app
 
@@ -18,7 +18,11 @@ ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN
 ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN npm run build
 
-# ---- Runtime stage ----
+#* Runtime stage
+# Use a small nginx image to serve the static files
 FROM nginx:1.27-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
+
+# Starts the webserver that services the static files so it automatically
+# brings the frontend app up when the container is started
+CMD ["nginx", "-g", "daemon off;"]

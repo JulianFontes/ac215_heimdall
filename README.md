@@ -1,11 +1,18 @@
-# heimdall
-
 ## Running Heimdall
 
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
 
 All services are defined in [`docker-compose.yml`](docker-compose.yml). Run every command below from this (repo root) folder.
+
+### Commands
+Everything goes through [`heimdall_docker.sh`](heimdall_docker.sh), a thin wrapper around `docker compose`.
+Leave out the service name to act on every service.
+```bash
+./heimdall_docker.sh build [service...]   # build images (add --no-cache for a clean rebuild)
+./heimdall_docker.sh up    [service...]   # build anything that changed, start in the background
+./heimdall_docker.sh down                 # stop and remove containers (images are kept)
+```
 
 ### Frontend
 3D cloud visualisation (Kepler.gl), served as a static site by nginx at http://localhost:8080.
@@ -17,18 +24,17 @@ so it must be filled first, either by:
 - sample data: `cd src/heimdall/heimdall-frontend && npm install && npm run data` (needs Node 18+)
 
 **2. (Optional) Mapbox token.** Only needed for the Mapbox basemap styles; the default basemap works without one.
-Create a `.env` file in the repo root (it is git-ignored):
+Copy the template and fill in the token (`.env` is git-ignored):
 ```bash
-VITE_MAPBOX_TOKEN=pk....
+cp .env.example .env      # then set VITE_MAPBOX_TOKEN=pk....
 ```
-The token is baked in at build time, so rebuild (`--build`) after changing it.
+The token is baked in at build time; `./heimdall_docker.sh up` rebuilds automatically after you change it.
 
 **3. Start it.**
 ```bash
-docker compose up --build frontend      # first run, or after changing frontend code / token
-docker compose up -d frontend           # later runs, in the background
-docker compose down                     # stop
+./heimdall_docker.sh up frontend
 ```
 Open http://localhost:8080. When new data is written to `public/data/`, just refresh the browser; no rebuild needed.
 
-For local development without Docker (hot reload), see the [frontend README](src/heimdall/heimdall-frontend/README.md).
+**Developing the frontend?** Use `src/heimdall/heimdall-frontend/start_frontend.sh` instead of Docker: it runs the Vite
+dev server with hot reload, so code changes show up instantly without rebuilding. See the [frontend README](src/heimdall/heimdall-frontend/README.md).
