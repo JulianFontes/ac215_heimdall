@@ -100,7 +100,6 @@ def split_time(x):
     return x.isel(time=slice(0, c1)), x.isel(time=slice(c1, c2)), x.isel(time=slice(c2, n))
 
 def scale(a, scaler):
-    print('Applying scales')
     """Normalize bands while preserving the validity channel."""
     if a.sizes["time"] == 0:
         return a
@@ -108,9 +107,12 @@ def scale(a, scaler):
     # scale each band to z-scores in place to avoid allocating new arrays
     for c in range(N_CH):
         band = a.isel(channel=c)
-        band.data -= scaler.mean_[c]
-        band.data /= scaler.scale_[c]
+        band.data -= scaler.mean_[c] # subtract the training mean (center to 0)
+        band.data /= scaler.scale_[c] # divide by the training std (scale to unit variance)
         band.data[np.isnan(band.data)] = 0.0 # Replace invalid values without allocating a new array
+        
+        assert np.isclose(band.mean(skipna=True).item(), 0, atol=1e-4), "Mean is not zero"
+        assert np.isclose(band.std(skipna=True).item(), 1, atol=1e-4), "Std is not one"
     return a
 
 def normalize(train, val, test, batch_size=16):
