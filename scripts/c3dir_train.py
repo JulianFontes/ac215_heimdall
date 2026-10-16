@@ -14,8 +14,8 @@ import xarray as xr
 from heimdall.c3dir.model.c3dir import C3DIR, TrainConfig
 from heimdall.c3dir.data_scraping.dataset import C3DIRDataset, Samples
 from heimdall.c3dir.model.evaluation import detection_scores, predict_curtain, predict_samples, water_scores
-from heimdall.c3dir.plots.model_plots import (plot_curtain, plot_detection, plot_history, plot_profiles, plot_species_curtain,
-                                    plot_water)
+from heimdall.c3dir.plots.model_plots import (plot_coverage, plot_coverage_disk, plot_curtain, plot_detection,
+                                    plot_history, plot_profiles, plot_species_curtain, plot_water)
 from heimdall.c3dir.model.network import ModelConfig
 from heimdall.paths import DATA_DIR
 
@@ -49,9 +49,13 @@ pd.concat([detection.assign(kind="detection"), water.assign(kind="water")]).to_c
 
 figures = out / "figures"
 figures.mkdir(exist_ok=True)
+splits = {name: [DATA_DIR / "collocated" / path.name for path in files]
+          for name, files in [("Train", train.files), ("Validation", val.files), ("Test", test_files)]}
 for name, fig in [("history", plot_history(model.history)),
                   ("detection", plot_detection(detection_scores(table, by_level=True))),
-                  ("water", plot_water(table, water))]:
+                  ("water", plot_water(table, water)),
+                  ("coverage", plot_coverage(splits)),
+                  ("coverage_disk", plot_coverage_disk(splits))]:
     fig.savefig(figures / f"{name}.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 

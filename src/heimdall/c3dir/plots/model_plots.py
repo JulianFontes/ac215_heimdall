@@ -1,14 +1,19 @@
-"""figures for a trained C3DIR model: training history, test scores, EarthCARE vs C3DIR along
-the track (curtain, species, profiles), and predictions around a point (column, region).
+"""figures for a trained C3DIR model: training history, test scores, where the matches are,
+EarthCARE vs C3DIR along the track (curtain, species, profiles), and predictions around a point
+(column, region).
 """
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import xarray as xr
 from matplotlib.colors import LogNorm
+from scipy.ndimage import gaussian_filter
 
-from heimdall.c3dir.constants import LEVELS_KM, MASK_THRESHOLD, PHASES, SPECIES, WATER
+from heimdall.c3dir.constants import GOES19_LON, LEVELS_KM, MASK_THRESHOLD, PHASES, SPECIES, VIEW_RADIUS_DEG, WATER
 from heimdall.c3dir.model.evaluation import _water
-from heimdall.c3dir.geometry import ray_latlon, scan_angles
+from heimdall.c3dir.geometry import ray_latlon, scan_angles, view_circle
 from heimdall.c3dir.model.inference import crop, scan_time
 from heimdall.plot_style import CLOUD_CMAP, PROBABILITY_CMAP, RAY_COLOR, SKY_COLOR, styled, true_color
 
@@ -61,6 +66,95 @@ def plot_water(table, scores):
     axes[0].set_ylabel("C3DIR (g m$^{-3}$)")
     fig.suptitle("Water content")
     return fig
+
+
+FULL_DISK_COLOR, SCRAPING_COLOR = "#8fb8de", "#eaf3fb"  # pastel blues for the GOES-19 view areas
+
+
+def _coverage(splits):
+    """matched profile positions and dates for each split of collocated pair files."""
+    out = {}
+    for name, pairs in splits.items():
+        lat, lon, days = [], [], set()
+        for path in pairs:
+            with xr.open_dataset(path) as pair:
+                lat.append(pair["lat"].values)  # one entry per matched profile
+                lon.append(pair["lon"].values)
+                days.add(pd.Timestamp(pair.attrs["scan_start"]).date())
+        out[name] = (np.concatenate(lat), np.concatenate(lon), sorted(days))
+    return out
+
+
+def _density(lat, lon, lat_edges, lon_edges, smooth_deg=1.0):
+    """matched profiles per square degree on a fine grid, smoothed with a gaussian of smooth_deg so
+    the heatmap has no visible boxes; below 1 per square degree is masked to show the earth."""
+    step = lat_edges[1] - lat_edges[0]
+    counts, _, _ = np.histogram2d(lat, lon, bins=[lat_edges, lon_edges])
+    density = gaussian_filter(counts, smooth_deg / step) / step ** 2
+    return np.ma.masked_less(density, 1.0)
+
+
+def _view_areas(ax):
+    """the GOES-19 full-disk footprint (where lines of sight graze the earth, arccos(R / satellite
+    distance) ~81° from the point under it) and the scraping view limit, as pastel fills."""
+    footprint_deg = np.degrees(np.arccos(6378137.0 / (6378137.0 + 35786023.0)))
+    for radius, color, alpha, label in [(footprint_deg, FULL_DISK_COLOR, 0.35, "GOES-19 full disk"),
+                                        (VIEW_RADIUS_DEG, SCRAPING_COLOR, 0.6,
+                                         f"Scraping limit ({VIEW_RADIUS_DEG:.0f}°)")]:
+        ring_lat, ring_lon = view_circle(GOES19_LON, radius, n=360)
+        ax.fill(ring_lon, ring_lat, facecolor=color, edgecolor=FULL_DISK_COLOR, alpha=alpha, lw=1,
+                transform=ccrs.Geodetic(), label=label)
+
+
+def _earth(ax):
+    ax.add_feature(cfeature.LAND.with_scale("50m"), facecolor="0.9")  # 110m isn't cached, so ask for 50m
+    ax.coastlines("50m", color="0.4", linewidth=0.5)
+    ax.add_feature(cfeature.BORDERS.with_scale("50m"), edgecolor="0.4", linewidth=0.3)
+
+
+@styled
+def plot_coverage(splits, grid_deg=0.25):
+    """where EarthCARE was matched to GOES-19, one global map per split (like paper figure 2a,d,e):
+    a heatmap of matched EarthCARE profiles over the GOES-19 full-disk footprint and the scraping
+    view limit.
+
+    splits: {name: collocated pair files (data/collocated/)}, e.g. {"Train": [...], "Test": [...]}.
+    """
+    lat_edges, lon_edges = np.arange(-90, 90 + grid_deg, grid_deg), np.arange(-180, 180 + grid_deg, grid_deg)
+    fig, axes = plt.subplots(len(splits), 1, figsize=(8, 4.2 * len(splits)), layout="constrained",
+                             subplot_kw={"projection": ccrs.Robinson(central_longitude=GOES19_LON)}, squeeze=False)
+    for ax, (name, (lat, lon, days)) in zip(axes[:, 0], _coverage(splits).items()):
+        ax.set_global()
+        _earth(ax)
+        _view_areas(ax)
+        mesh = ax.pcolormesh(lon_edges, lat_edges, _density(lat, lon, lat_edges, lon_edges), cmap="viridis",
+                             transform=ccrs.PlateCarree(), rasterized=True)
+        fig.colorbar(mesh, ax=ax, shrink=0.8, label="Matched profiles\nper square degree")
+        ax.set_title(f"{name}: {len(days)} days, {days[0]:%Y-%m-%d} to {days[-1]:%Y-%m-%d}")
+    axes[-1, 0].legend(loc="upper center", bbox_to_anchor=(0.5, -0.05), ncol=2, frameon=False)
+    return fig
+
+
+@styled
+def plot_coverage_disk(splits, grid_deg=0.25):
+    """a heatmap of every matched EarthCARE profile (all splits together) on the hemisphere GOES-19
+    sees, over the full disk and the scraping view limit."""
+    lat, lon, days = (np.concatenate(v) for v in zip(*[(la, lo, d) for la, lo, d in _coverage(splits).values()]))
+    # grid only around the data, so every cell corner stays on the visible disk
+    lat_edges = np.arange(np.floor(lat.min()) - 5, lat.max() + 5, grid_deg)
+    lon_edges = np.arange(np.floor(lon.min()) - 5, lon.max() + 5, grid_deg)
+    fig, ax = plt.subplots(figsize=(8, 8.5), layout="constrained",
+                           subplot_kw={"projection": ccrs.Geostationary(central_longitude=GOES19_LON)})
+    ax.set_global()
+    _earth(ax)
+    _view_areas(ax)
+    mesh = ax.pcolormesh(lon_edges, lat_edges, _density(lat, lon, lat_edges, lon_edges), cmap="viridis",
+                         transform=ccrs.PlateCarree(), rasterized=True)
+    fig.colorbar(mesh, ax=ax, shrink=0.6, label="Matched profiles per square degree")
+    ax.set_title(f"EarthCARE profiles matched to GOES-19 ({len(set(days))} days)")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.02), ncol=2, frameon=False)
+    return fig
+
 
 @styled
 def plot_curtain(pair, curtain):
