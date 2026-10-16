@@ -107,12 +107,22 @@ def scale(a, scaler):
     # scale each band to z-scores in place to avoid allocating new arrays
     for c in range(N_CH):
         band = a.isel(channel=c)
+        
+        # Sample ~10 valid pixels before normalization to check if it succeeds
+        # This is a sanity check to ensure that the normalization is applied correctly
+        flat = band.data.flat
+        idx = np.linspace(0, band.data.size - 1, min(1000, band.data.size), dtype=int)
+        idx = idx[np.isfinite(flat[idx])][:10]
+        original = np.asarray(flat[idx]).copy()
+        
         band.data -= scaler.mean_[c] # subtract the training mean (center to 0)
         band.data /= scaler.scale_[c] # divide by the training std (scale to unit variance)
-        band.data[np.isnan(band.data)] = 0.0 # Replace invalid values without allocating a new array
+        band.data[np.isnan(band.data)] = 0.0 # replace nan values without allocating a new array
         
-        assert np.isclose(band.mean(skipna=True).item(), 0, atol=1e-4), "Mean is not zero"
-        assert np.isclose(band.std(skipna=True).item(), 1, atol=1e-4), "Std is not one"
+        assert np.allclose(
+            flat[idx], (original - scaler.mean_[c]) / scaler.scale_[c], atol=1e-5
+        ), f"Normalization failed for channel {c}"
+        
     return a
 
 def normalize(train, val, test, batch_size=16):
