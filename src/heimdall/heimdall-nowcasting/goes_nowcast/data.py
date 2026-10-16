@@ -10,6 +10,8 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import ConcatDataset, DataLoader
 from xbatcher.loaders.torch import MapDataset
 
+from tqdm import tqdm
+
 from .config import BANDS, STEP_MIN, TARGET_BANDS, T_IN, T_OUT, VAL_FRAC, TEST_FRAC
 
 N_CH = len(BANDS)                                   # model input channels
@@ -78,8 +80,16 @@ def load_channels(path):
     if len(files) == 1:
         x = load_file(files[0]) # a single file is already in time order, so skip the concat/sort
     else:
-        x = xr.concat([load_file(f) for f in files], dim="time").sortby("time").drop_duplicates("time")
-    x = x.transpose("time", "channel", "y", "x").astype("float32", copy=False)
+        x = xr.concat([load_file(f) for f in files], dim="time")
+        
+        # sorting and dropping duplicates create copies of the whole array
+        # so only do it when the files are out of order or there's overlap
+        if not x.indexes["time"].is_monotonic_increasing:
+            x = x.sortby("time")
+        if not x.indexes["time"].is_unique:
+            x = x.drop_duplicates("time")
+            
+    x = x.transpose("time", "channel", "y", "x")
     print(f"  {x.sizes['time']} frames, {x.time.values[0]} -> {x.time.values[-1]}, grid {x.sizes['y']}x{x.sizes['x']}")
     return x
 
@@ -90,20 +100,32 @@ def split_time(x):
     return x.isel(time=slice(0, c1)), x.isel(time=slice(c1, c2)), x.isel(time=slice(c2, n))
 
 def scale(a, scaler):
-    """z-score the bands of one split with a fitted StandardScaler. Invalid pixels (NaN) become 0, i.e. the mean; the validity flag is kept as is."""
-    if a.sizes["time"] == 0: # e.g. TEST_FRAC = 0: nothing to normalize, and StandardScaler rejects empty arrays
+    print('Applying scales')
+    """Normalize bands while preserving the validity channel."""
+    if a.sizes["time"] == 0:
         return a
-    bands = a.isel(channel=slice(0, N_CH)).transpose("time", "y", "x", "channel") # bands last: one row per pixel, one column per band
-    z = bands.copy(data=scaler.transform(bands.values.reshape(-1, N_CH)).reshape(bands.shape))
-    z = z.transpose("time", "channel", "y", "x").fillna(0)
-    return xr.concat([z, a.isel(channel=slice(N_CH, None))], dim="channel").astype("float32")
 
-def normalize(train, val, test):
-    """z-score every band with the per-band mean / std of the training frames only (StandardScaler, NaN pixels ignored).
-    Returns the three normalized splits and the fitted scaler (scaler.mean_, scaler.scale_)."""
-    print(f"Normalizing the splits")
+    # scale each band to z-scores in place to avoid allocating new arrays
+    for c in range(N_CH):
+        band = a.isel(channel=c)
+        band.data -= scaler.mean_[c]
+        band.data /= scaler.scale_[c]
+        band.data[np.isnan(band.data)] = 0.0 # Replace invalid values without allocating a new array
+    return a
+
+def normalize(train, val, test, batch_size=16):
+    """Z-score bands using training statistics, ignoring NaNs."""
+    print("Normalizing the splits")
+
     bands = train.isel(channel=slice(0, N_CH)).transpose("time", "y", "x", "channel")
-    scaler = StandardScaler().fit(bands.values.reshape(-1, N_CH)) # fit on the training frames only to avoid leakage
+    scaler = StandardScaler()
+
+    # create partial fits in batches to avoid allocating large arrays
+    # when collecting statistics
+    for i in tqdm(range(0, bands.sizes["time"], batch_size), desc='Fitting Scales in Batches'):
+        batch = bands.isel(time=slice(i, i + batch_size))
+        scaler.partial_fit(batch.values.reshape(-1, N_CH))
+
     return scale(train, scaler), scale(val, scaler), scale(test, scaler), scaler
 
 def contiguous(x):
