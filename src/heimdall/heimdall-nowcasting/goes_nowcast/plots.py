@@ -1,4 +1,5 @@
 """Training curves and forecast plots."""
+import bisect
 import os
 
 import matplotlib
@@ -6,13 +7,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
-from .config import PLOT_EVERY_MIN, STEP_MIN, TARGET_BANDS, T_OUT
-from .data import split_batch
+from .config import PLOT_EVERY_MIN, STEP_MIN, TARGET_BANDS, T_IN, T_OUT
+from .data import TARGET_IDX, split_batch
 from .evaluation import persistence
 
 GRAY, BLUE = "#898781", "#2a78d6"
+# forecast - truth: blue (undershoot) -> green (no error) -> red (overshoot)
+ERR_CMAP = LinearSegmentedColormap.from_list("err", ["#08519c", "#6baed6", "#c7e9c0", "#fc9272", "#a50f15"])
 
 def unit_label(u):
     return "unitless" if u == "1" else u # "1" is the CF convention for dimensionless (reflectance factor)
@@ -104,40 +108,56 @@ def plot_vs_persistence(r, base, units, path, leads=None):
     plt.close(fig)
 
 @torch.no_grad()
-def plot_forecast(model, loader, stats, units, device, out_dir):
+def plot_forecast(model, loader, stats, units, device, out_dir, index=0):
     """One figure per target band, forecast_CXX.png in out_dir (created if missing): truth, ConvLSTM forecast, persistence and the error of
-    both forecasts for the first window of the loader. Each error panel shows its RMSE over the valid pixels. The error
-    colour scale is set per band (99th percentile of the persistence error), so bands with small errors stay readable."""
+    both forecasts for window `index` of the loader (default: the first), with the last input frames left of the truth row for context. Each error panel
+    shows its RMSE over the valid pixels. The error colour scale is set per band (99th percentile of the persistence error), so bands with small errors stay readable."""
     os.makedirs(out_dir, exist_ok=True)
     model.eval()
     mean, std = (a.cpu() for a in stats)
-    x, y, valid = split_batch(next(iter(loader)))
+    x, y, valid = split_batch(loader.dataset[index].unsqueeze(0))
+    # timestamps of that window, "YYYY-MM-DDTHH:MM" in UTC: find its part of the ConcatDataset, where window i starts at frame i
+    part = bisect.bisect_right(loader.dataset.cumulative_sizes, index)
+    start = index - (loader.dataset.cumulative_sizes[part - 1] if part else 0)
+    frames = loader.dataset.datasets[part].X_generator.ds.time.values[start:start + T_IN + T_OUT]
+    times = np.datetime_as_string(frames, unit="m")
+    hhmm = lambda t: f"{t[11:]} UTC"
     pred, pers = model(x.to(device)).cpu(), persistence(x)
     ok = valid[0, :, 0].bool()
     for i, b in enumerate(TARGET_BANDS):
         phys = lambda a: a[0, :, i] * std[i] + mean[i] # first window, band i, physical units
         truth, pr, pe = phys(y), phys(pred), phys(pers)
-        vmin, vmax = float(truth.min()), float(truth.max())
+        inp = x[0, :, TARGET_IDX[i]] * std[i] + mean[i] # the input frames of the same band
+        vmin, vmax = float(min(truth.min(), inp.min())), float(max(truth.max(), inp.max()))
         emax = float((pe - truth)[ok].abs().quantile(0.99))
         leads = plot_leads()
-        fig, ax = plt.subplots(5, len(leads), figsize=(2.2 * len(leads) + 1.0, 10.6), squeeze=False, layout="constrained")
-        for c, k in enumerate(leads):
+        # input frames every PLOT_EVERY_MIN minutes up to the last observed frame (t), in extra columns left of the truth row
+        shown = [j for j in range(T_IN) if (T_IN - 1 - j) * STEP_MIN % PLOT_EVERY_MIN == 0]
+        n_in = len(shown)
+        fig, ax = plt.subplots(5, n_in + len(leads), figsize=(2.2 * (n_in + len(leads)) + 1.0, 10.6), squeeze=False, layout="constrained")
+        for c, j in enumerate(shown):
+            ax[0, c].imshow(inp[j], vmin=vmin, vmax=vmax, cmap="gray_r")
+            ax[0, c].set_title((f"t-{(T_IN - 1 - j) * STEP_MIN} min" if j < T_IN - 1 else "t (last input)") + f"\n{hhmm(times[j])}", fontsize=9)
+            for a in ax[1:, c]:
+                a.axis("off")
+        for c, k in enumerate(leads, start=n_in):
             for row, img in enumerate((truth, pr, pe)):
                 im = ax[row, c].imshow(img[k], vmin=vmin, vmax=vmax, cmap="gray_r")
             for row, f in ((3, pr), (4, pe)):
                 e = f[k] - truth[k]
-                err = ax[row, c].imshow(e, vmin=-emax, vmax=emax, cmap="RdBu_r")
+                err = ax[row, c].imshow(e, vmin=-emax, vmax=emax, cmap=ERR_CMAP)
                 rmse = float(e[ok[k]].pow(2).mean().sqrt())
                 ax[row, c].text(0.03, 0.97, f"RMSE {rmse:.3g}", transform=ax[row, c].transAxes, va="top", fontsize=8,
                                 bbox=dict(fc="white", ec="none", alpha=0.8, pad=1.5))
-            ax[0, c].set_title(f"+{(k + 1) * STEP_MIN} min", fontsize=9)
-        for a, label in zip(ax[:, 0], ("truth", "ConvLSTM", "persistence", "ConvLSTM - truth", "persistence - truth")):
+            ax[0, c].set_title(f"t+{(k + 1) * STEP_MIN} min\n{hhmm(times[T_IN + k])}", fontsize=9)
+        ax[0, 0].set_ylabel("input")
+        for a, label in zip(ax[:, n_in], ("truth", "ConvLSTM", "persistence", "ConvLSTM - truth", "persistence - truth")):
             a.set_ylabel(label)
         for a in ax.ravel():
             a.set_xticks([]); a.set_yticks([])
         u = unit_label(units[b])
         fig.colorbar(im, ax=ax[:3, :], shrink=0.9).set_label(f"C{b:02d} ({u})", fontsize=8)
-        fig.colorbar(err, ax=ax[3:, :], shrink=0.9).set_label(f"forecast - truth ({u})\nred: (overshoot) ), blue: (undershoot)", fontsize=8)
-        fig.suptitle(f"Band C{b:02d}: ConvLSTM vs persistence")
+        fig.colorbar(err, ax=ax[3:, :], shrink=0.9).set_label(f"forecast - truth ({u})\nred: overshoot, green: no error, blue: undershoot", fontsize=8)
+        fig.suptitle(f"Band C{b:02d}: ConvLSTM vs persistence, forecast from {times[T_IN - 1].replace('T', ' ')} UTC")
         fig.savefig(os.path.join(out_dir, f"forecast_C{b:02d}.png"), dpi=100)
         plt.close(fig)

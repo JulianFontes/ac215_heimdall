@@ -88,24 +88,22 @@ def split_time(x):
     c1, c2 = int(n * (1 - VAL_FRAC - TEST_FRAC)), int(n * (1 - TEST_FRAC))
     return x.isel(time=slice(0, c1)), x.isel(time=slice(c1, c2)), x.isel(time=slice(c2, n))
 
+def scale(a, scaler):
+    """z-score the bands of one split with a fitted StandardScaler. Invalid pixels (NaN) become 0, i.e. the mean; the validity flag is kept as is."""
+    if a.sizes["time"] == 0: # e.g. TEST_FRAC = 0: nothing to normalize, and StandardScaler rejects empty arrays
+        return a
+    bands = a.isel(channel=slice(0, N_CH)).transpose("time", "y", "x", "channel") # bands last: one row per pixel, one column per band
+    z = bands.copy(data=scaler.transform(bands.values.reshape(-1, N_CH)).reshape(bands.shape))
+    z = z.transpose("time", "channel", "y", "x").fillna(0)
+    return xr.concat([z, a.isel(channel=slice(N_CH, None))], dim="channel").astype("float32")
+
 def normalize(train, val, test):
     """z-score every band with the per-band mean / std of the training frames only (StandardScaler, NaN pixels ignored).
-    Invalid pixels (NaN) become 0, i.e. the mean; the validity flag is kept as is.
     Returns the three normalized splits and the fitted scaler (scaler.mean_, scaler.scale_)."""
-    
     print(f"Normalizing the splits")
-    rows = lambda a: a.isel(channel=slice(0, N_CH)).transpose("time", "y", "x", "channel") # flattened: one row per pixel, one column per band
-    scaler = StandardScaler().fit(rows(train).values.reshape(-1, N_CH))
-    out = []
-    for a in (train, val, test):
-        if a.sizes["time"] == 0: # e.g. TEST_FRAC = 0: nothing to normalize, and StandardScaler rejects empty arrays
-            out.append(a)
-            continue
-        bands = rows(a)
-        z = bands.copy(data=scaler.transform(bands.values.reshape(-1, N_CH)).reshape(bands.shape))
-        z = z.transpose("time", "channel", "y", "x").fillna(0)
-        out.append(xr.concat([z, a.isel(channel=slice(N_CH, None))], dim="channel").astype("float32"))
-    return (*out, scaler)
+    bands = train.isel(channel=slice(0, N_CH)).transpose("time", "y", "x", "channel")
+    scaler = StandardScaler().fit(bands.values.reshape(-1, N_CH)) # fit on the training frames only to avoid leakage
+    return scale(train, scaler), scale(val, scaler), scale(test, scaler), scaler
 
 def contiguous(x):
     """Split at time gaps larger than MAX_GAP_S."""
