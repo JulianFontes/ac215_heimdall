@@ -61,6 +61,7 @@ def describe_splits(splits):
     print(f"  {'total':<6} {'':<40} {frames:>6}  {windows:>7}")
 
 def load_file(f):
+    print('Loading + Formatting ...')
     with xr.open_dataset(f) as ds:
         ds = ds.rename(t="time")
         cmi = xr.concat([ds[f"CMI_C{b:02d}"].reset_coords(drop=True) for b in BANDS], dim="channel").assign_coords(channel=[f"C{b:02d}" for b in BANDS])
