@@ -7,19 +7,19 @@ Small-scale 2D ConvLSTM nowcasting of GOES-19 ABI imagery. From the previous `T_
 From the project root:
 
 ```bash
-./src/heimdall/heimdall-nowcasting/goes_nowcast/scripts/run_train.sh --help
+./src/heimdall-nowcasting/goes_nowcast/scripts/run_train.sh --help
 ```
 
 Extra arguments are passed through to `scripts/train.py` and override the defaults:
 
 ```bash
-./src/heimdall/heimdall-nowcasting/goes_nowcast/scripts/run_train.sh --epochs 5 --out runs/quick_test
+./src/heimdall-nowcasting/goes_nowcast/scripts/run_train.sh --epochs 5 --out runs/quick_test
 ```
 
 To run on different data, update `run_train.sh` or run the training module directly:
 
 ```bash
-uv run --project src/heimdall/heimdall-nowcasting python -m goes_nowcast.scripts.train -p data/goes19 --epochs 20 --out runs/baseline
+uv run --project src/heimdall-nowcasting python -m goes_nowcast.scripts.train -p data/goes19 --epochs 20 --out runs/baseline
 ```
 
 | Argument | Default | Description |

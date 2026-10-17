@@ -4,7 +4,8 @@ __pycache__/
 
 # User directories
 data/*
-src/heimdall/heimdall-frontend/public/data/*
+models/*
+src/heimdall-frontend/public/data/*
 training_runs/
 sandbox/
 .earthcare_config/*
@@ -18,6 +19,9 @@ dist
 dist.nosync
 .vite/
 *.local
+
+# Python venvs (may be a symlink to a venv outside iCloud)
+.venv
 
 # Local env (keep .env.example tracked) to ensure API keys aren't included in the repo
 # Use the example as 

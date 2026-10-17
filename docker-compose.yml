@@ -4,7 +4,7 @@
 services:
   frontend:
     build:
-      context: ./src/heimdall/heimdall-frontend
+      context: ./src/heimdall-frontend
       args:
         # Optional; baked into the JS bundle at build time. 
         # Set it in ./.env (next to this file) or export it in your shell.
@@ -14,5 +14,5 @@ services:
       - "8080:80" # expose the frontend on port 8080
     volumes:
       # Bind mount: 3d predictions / forecasts / sample data written here are served live so no rebuild needed
-      - ./src/heimdall/heimdall-frontend/public/data:/usr/share/nginx/html/data:ro # exposes the data folder to the frontend container
+      - ./src/heimdall-frontend/public/data:/usr/share/nginx/html/data:ro # exposes the data folder to the frontend container
     restart: unless-stopped # automatically restart the container if it crashes or is stopped

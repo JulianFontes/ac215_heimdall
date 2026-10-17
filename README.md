@@ -23,6 +23,6 @@ Leave out the service name to act on all services in `docker-compose.yml`.
 ### Services
 | Service | URL | Details |
 |---|---|---|
-| `frontend` | http://localhost:8080 | [frontend README](src/heimdall/heimdall-frontend/README.md) |
+| `frontend` | http://localhost:8080 | [frontend README](src/heimdall-frontend/README.md) |
 
 Each service's README covers its own data, configuration and local development setup.
