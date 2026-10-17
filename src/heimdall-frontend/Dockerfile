@@ -27,6 +27,8 @@ RUN npm run build
 #         is self-contained and can be deployed anywhere without needing to mount a volume from the host
 FROM nginx:1.27-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
+# allow large request headers: browsers send every cookie stored for localhost, which can exceed nginx's 8 KB default
+RUN echo 'large_client_header_buffers 4 32k;' > /etc/nginx/conf.d/large_headers.conf
 
 # Starts the webserver that services the static files so it automatically
 # brings the frontend app up when the container is started
