@@ -22,6 +22,7 @@ dist.nosync
 
 # Python venvs (may be a symlink to a venv outside iCloud)
 .venv
+.venv.nosync
 
 # Local env (keep .env.example tracked) to ensure API keys aren't included in the repo
 # Use the example as 
