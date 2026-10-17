@@ -26,8 +26,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from heimdall.c3dir.constants import BANDS, TARGETS
-from heimdall.paths import DATA_DIR
+from c3dir.constants import BANDS, TARGETS
+from c3dir.paths import DATA_DIR
 
 VOXEL_VARS = ["voxel_level", "voxel_row", "voxel_col", "voxel_profile", "voxel_distance_km",
               "voxel_dt_seconds", "voxel_labels"]

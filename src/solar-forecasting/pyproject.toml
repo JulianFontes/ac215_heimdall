@@ -1,0 +1,21 @@
+[project]
+name = "solar-forecasting"
+version = "0.1.0"
+requires-python = ">=3.14"
+# SURFRAD stations and clear-sky modeling; GOES-19 view geometry, paths and figure style from c3dir
+dependencies = [
+    "c3dir[plots]",
+    "pvlib>=0.16.1",
+    "requests>=2.34.2",
+]
+
+[tool.uv.sources]
+c3dir = { path = "../c3dir", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.8"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""  # the package is src/solar-forecasting/solar_forecasting/, next to this file
+module-name = "solar_forecasting"

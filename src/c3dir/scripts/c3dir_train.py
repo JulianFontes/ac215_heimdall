@@ -11,13 +11,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import xarray as xr
 
-from heimdall.c3dir.model.c3dir import C3DIR, TrainConfig
-from heimdall.c3dir.data_scraping.dataset import C3DIRDataset, Samples
-from heimdall.c3dir.model.evaluation import detection_scores, predict_curtain, predict_samples, water_scores
-from heimdall.c3dir.plots.model_plots import (plot_coverage, plot_coverage_disk, plot_curtain, plot_detection,
+from c3dir.model.c3dir import C3DIR, TrainConfig
+from c3dir.data_scraping.dataset import C3DIRDataset, Samples
+from c3dir.model.evaluation import detection_scores, predict_curtain, predict_samples, water_scores
+from c3dir.plots.model_plots import (plot_coverage, plot_coverage_disk, plot_curtain, plot_detection,
                                     plot_history, plot_profiles, plot_species_curtain, plot_water)
-from heimdall.c3dir.model.network import ModelConfig
-from heimdall.paths import DATA_DIR
+from c3dir.model.network import ModelConfig
+from c3dir.paths import DATA_DIR
 
 # settings: change these
 VAL_AFTER = None  # date: days from here go to validation; None splits ~80/10/10 by date

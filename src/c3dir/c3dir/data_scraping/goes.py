@@ -21,9 +21,9 @@ import pandas as pd
 import xarray as xr
 from goes2go import GOES
 
-from heimdall.c3dir.constants import BANDS, TARGETS
-from heimdall.c3dir.geometry import closest_ray, ray_point, satellite_frame, scan_angles
-from heimdall.paths import DATA_DIR
+from c3dir.constants import BANDS, TARGETS
+from c3dir.geometry import closest_ray, ray_point, satellite_frame, scan_angles
+from c3dir.paths import DATA_DIR
 
 SCAN_MINUTES = {"F": 10, "C": 5}  # how often each domain gets scanned
 

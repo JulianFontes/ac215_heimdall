@@ -4,7 +4,7 @@
   column = predict_column(model, scene, lat, lon)      DataFrame over the 80 levels
   region = predict_region(model, scene, lat, lon)      xarray (height, lat, lon)
 
-figures for these are in heimdall.c3dir.plots.model_plots.
+figures for these are in c3dir.plots.model_plots.
 
 the column is built normal to the surface, as the paper does for its profile comparisons
 (section 5.3): at each height, the voxel of the goes pixel whose line of sight crosses that
@@ -17,10 +17,10 @@ import pandas as pd
 import xarray as xr
 from goes2go import GOES
 
-from heimdall.c3dir.model.c3dir import decode_numpy
-from heimdall.c3dir.constants import BANDS, LEVELS_KM, PHASES, SPECIES
-from heimdall.c3dir.geometry import ray_latlon, scan_angles
-from heimdall.paths import DATA_DIR
+from c3dir.model.c3dir import decode_numpy
+from c3dir.constants import BANDS, LEVELS_KM, PHASES, SPECIES
+from c3dir.geometry import ray_latlon, scan_angles
+from c3dir.paths import DATA_DIR
 
 # SURFRAD stations (lat, lon)
 SURFRAD = {

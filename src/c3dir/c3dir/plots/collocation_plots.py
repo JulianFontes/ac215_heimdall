@@ -1,4 +1,4 @@
-"""figures for the collocated goes-19 / earthcare pairs (see heimdall.c3dir.data_scraping.goes)."""
+"""figures for the collocated goes-19 / earthcare pairs (see c3dir.data_scraping.goes)."""
 import warnings
 from pathlib import Path
 
@@ -13,9 +13,9 @@ from matplotlib.patches import Ellipse
 from matplotlib.lines import Line2D
 from matplotlib.ticker import MaxNLocator
 
-from heimdall.c3dir.constants import BANDS, MASK_THRESHOLD, TARGETS
-from heimdall.c3dir.geometry import ray_point, satellite_frame, scan_angles
-from heimdall.plot_style import CLOUD_CMAP, NO_DATA_COLOR, RAY_COLOR, styled, true_color
+from c3dir.constants import BANDS, MASK_THRESHOLD, TARGETS
+from c3dir.geometry import ray_point, satellite_frame, scan_angles
+from c3dir.plot_style import CLOUD_CMAP, NO_DATA_COLOR, RAY_COLOR, styled, true_color
 
 
 

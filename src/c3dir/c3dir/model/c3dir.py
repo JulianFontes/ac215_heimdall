@@ -22,10 +22,10 @@ import xarray as xr
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, RandomSampler
 
-from heimdall.c3dir.constants import BANDS, TARGETS
-from heimdall.c3dir.data_scraping.dataset import C3DIRDataset, collate
-from heimdall.c3dir.model.network import LEVELS, C3DIRNet, ModelConfig, decode, mask_logits, scale_radius, scale_water
-from heimdall.paths import MODELS_DIR, ROOT
+from c3dir.constants import BANDS, TARGETS
+from c3dir.data_scraping.dataset import C3DIRDataset, collate
+from c3dir.model.network import LEVELS, C3DIRNet, ModelConfig, decode, mask_logits, scale_radius, scale_water
+from c3dir.paths import MODELS_DIR, ROOT
 
 MODEL_ROOT = MODELS_DIR / "c3dir"
 MASK_COLUMNS = [TARGETS.index(m) for m in ["hydrometeor_mask", "ice_mask", "liquid_mask", "rain_mask"]]

@@ -21,9 +21,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from heimdall.c3dir.constants import GOES19_LON, LEVELS_KM, MASK_THRESHOLD, VIEW_RADIUS_DEG
-from heimdall.c3dir.geometry import view_circle
-from heimdall.paths import DATA_DIR
+from c3dir.constants import GOES19_LON, LEVELS_KM, MASK_THRESHOLD, VIEW_RADIUS_DEG
+from c3dir.geometry import view_circle
+from c3dir.paths import DATA_DIR
 
 
 

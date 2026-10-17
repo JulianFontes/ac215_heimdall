@@ -11,11 +11,11 @@ import xarray as xr
 from matplotlib.colors import LogNorm
 from scipy.ndimage import gaussian_filter
 
-from heimdall.c3dir.constants import GOES19_LON, LEVELS_KM, MASK_THRESHOLD, PHASES, SPECIES, VIEW_RADIUS_DEG, WATER
-from heimdall.c3dir.model.evaluation import _water
-from heimdall.c3dir.geometry import ray_latlon, scan_angles, view_circle
-from heimdall.c3dir.model.inference import crop, scan_time
-from heimdall.plot_style import CLOUD_CMAP, PROBABILITY_CMAP, RAY_COLOR, SKY_COLOR, styled, true_color
+from c3dir.constants import GOES19_LON, LEVELS_KM, MASK_THRESHOLD, PHASES, SPECIES, VIEW_RADIUS_DEG, WATER
+from c3dir.model.evaluation import _water
+from c3dir.geometry import ray_latlon, scan_angles, view_circle
+from c3dir.model.inference import crop, scan_time
+from c3dir.plot_style import CLOUD_CMAP, PROBABILITY_CMAP, RAY_COLOR, SKY_COLOR, styled, true_color
 
 
 @styled

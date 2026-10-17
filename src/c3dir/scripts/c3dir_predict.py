@@ -6,11 +6,11 @@ the column CSV go to artifacts/figures/c3dir_predict/, the 3D field to data/c3di
 """
 import matplotlib.pyplot as plt
 
-from heimdall.c3dir.model.c3dir import C3DIR
-from heimdall.c3dir.plots.model_plots import plot_column, plot_region
-from heimdall.c3dir.model.inference import (SURFRAD, check_daylight, goes_scene, predict_column, predict_region,
+from c3dir.model.c3dir import C3DIR
+from c3dir.plots.model_plots import plot_column, plot_region
+from c3dir.model.inference import (SURFRAD, check_daylight, goes_scene, predict_column, predict_region,
                                       scan_time, summary)
-from heimdall.paths import DATA_DIR, FIGURES_DIR
+from c3dir.paths import DATA_DIR, FIGURES_DIR
 
 # settings: change these
 SITE = "psu"  # a SURFRAD code (bon, dra, fpk, gwn, psu, sxf, tbl), or None to use LAT / LON

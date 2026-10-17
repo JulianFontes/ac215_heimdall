@@ -2,8 +2,8 @@
 
 The goal is a model that takes a GOES-19 image and predicts, for every pixel, an
 80-level column of cloud properties (ice, liquid and rain water content, particle
-size, and cloud masks), with uncertainty. It follows the C3DIR paper (White et al.,
-2026); section numbers below refer to that paper.
+size, and cloud masks). It follows the C3DIR paper (White et al., 2026); section
+numbers below refer to that paper.
 
 EarthCARE measures these properties directly, but only along its narrow ground track.
 GOES-19 sees the whole disk every 10 minutes, but at a slant: each pixel looks down a
@@ -11,6 +11,23 @@ tilted line of sight, so a cloud appears shifted from its ground position (~2 km
 10 km cloud in the tropics, ~30 km at 60°N). Training data is built by matching each
 EarthCARE voxel (profile, height) to the GOES pixel whose line of sight passes within
 5 km of it at that height, in a scan taken within 2.5 minutes (paper §3).
+
+## Layout
+
+This is the `c3dir` service; run everything from this folder (`src/c3dir/`).
+
+```
+src/c3dir/
+├── pyproject.toml      dependencies (managed with uv)
+├── uv.lock
+├── README.md
+├── scripts/            c3dir_runner.py, c3dir_train.py, c3dir_predict.py
+└── c3dir/              the Python package (import c3dir)
+```
+
+Data and outputs go to `data/` and `artifacts/` at the repo root, shared by every service
+and git-ignored. Set `HEIMDALL_DATA_DIR` / `HEIMDALL_ARTIFACTS_DIR` to put them elsewhere
+(e.g. mounted volumes in a container).
 
 ## Pipeline
 
@@ -34,13 +51,15 @@ model/  [ml]
 
 See [Quick start](#quick-start) for the scripts that run each step.
 
-Each folder matches a dependency group in `pyproject.toml`; the top-level files and
-`data_scraping/dataset.py` need only the core libraries.
+Files in the `c3dir/` package. Each folder matches a dependency group in `pyproject.toml`;
+the top-level files and `data_scraping/dataset.py` need only the core libraries.
 
 | File | What it does | Needs |
 |---|---|---|
 | `constants.py` | levels, bands, target names and order shared by every part | core |
 | `geometry.py` | GOES-19 line-of-sight geometry (`scan_angles`, `ray_point`, `ray_latlon`, `closest_ray`) | core |
+| `paths.py` | `data/` and `artifacts/` folders at the repo root (or from the environment variables above) | core |
+| `plot_style.py` | shared figure style (Arial bold) and colors | plots |
 | `data_scraping/dataset.py` | `Samples` builds and splits training samples; `C3DIRDataset` and `collate` serve batches | core |
 | `data_scraping/earthcare.py` | `EarthCareLabels`: finds EarthCARE ACM_CAP_2B frames GOES-19 can see, downloads them and averages them onto 80 levels of 0.25 km | scrape |
 | `data_scraping/goes.py` | `GOES19.collocate()`: downloads GOES-19 scans and matches EarthCARE voxels to their lines of sight | scrape |
@@ -55,10 +74,15 @@ Each folder matches a dependency group in `pyproject.toml`; the top-level files 
 "Needs" is the dependency group in `pyproject.toml` (`uv sync --extra scrape`, `--extra ml`,
 `--extra plots`); `uv sync` alone installs everything for local work.
 
+```bash
+cd src/c3dir
+uv sync
+```
+
 ## Quick start
 
-Each script has its settings at the top: edit them and run the file (from an IDE or
-`uv run python scripts/<name>.py`). EarthCARE downloads need the one-time ESA MAAP login
+Each script has its settings at the top: edit them and run the file (from an IDE, or
+`uv run python scripts/<name>.py` in `src/c3dir/`). EarthCARE downloads need the one-time ESA MAAP login
 setup (https://tropos-rsd.github.io/earthcarekit/setup/).
 
 **1. Scrape and collocate:** `scripts/c3dir_runner.py`
@@ -109,8 +133,8 @@ The model was trained on daytime passes only, so the script warns when the sun i
 From Python, the same steps are:
 
 ```python
-from heimdall.c3dir.model.c3dir import C3DIR
-from heimdall.c3dir.model.inference import goes_scene, predict_column, predict_region
+from c3dir.model.c3dir import C3DIR
+from c3dir.model.inference import goes_scene, predict_column, predict_region
 
 model = C3DIR.load("latest")
 scene = goes_scene("2025-08-17T18:30")

@@ -21,10 +21,10 @@ note: example script; the training dataset(s) and model framework are in progres
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from heimdall.c3dir.data_scraping.earthcare import EarthCareLabels
-from heimdall.c3dir.plots.collocation_plots import Plotting
-from heimdall.c3dir.data_scraping.scrape import scrape
-from heimdall.paths import DATA_DIR, FIGURES_DIR
+from c3dir.data_scraping.earthcare import EarthCareLabels
+from c3dir.plots.collocation_plots import Plotting
+from c3dir.data_scraping.scrape import scrape
+from c3dir.paths import DATA_DIR, FIGURES_DIR
 
 # settings: change these
 START = "2025-07-09T18:00"  # UTC; the default window has 4 collocated pairs

@@ -1,8 +1,8 @@
 [project]
-name = "heimdall"
+name = "c3dir"
 version = "0.1.0"
 requires-python = ">=3.14"
-# core: what every part needs (c3dir constants / geometry / dataset, NetCDF files)
+# core: what every part needs (constants / geometry / dataset, NetCDF files)
 dependencies = [
     "netcdf4>=1.7.4",
     "numpy>=2.5.3",
@@ -28,18 +28,16 @@ plots = [
     "cartopy>=0.26.0",
     "matplotlib>=3.11.2",
 ]
-# solar forecasting: SURFRAD data and clear-sky modeling
-solar = [
-    "pvlib>=0.16.1",
-    "requests>=2.34.2",
-]
 
 [dependency-groups]
 # local development installs everything
 dev = [
-    "heimdall[scrape,ml,plots,solar]",
+    "c3dir[scrape,ml,plots]",
 ]
 
 [build-system]
 requires = ["uv_build>=0.8"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""  # the package is src/c3dir/c3dir/, next to this file

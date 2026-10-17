@@ -10,9 +10,9 @@ import pandas as pd
 import xarray as xr
 from scipy.stats import pearsonr, spearmanr
 
-from heimdall.c3dir.model.c3dir import MASK_COLUMNS, WATER_COLUMNS, decode_numpy
-from heimdall.c3dir.constants import LEVELS_KM, MASK_THRESHOLD, SPECIES, WATER
-from heimdall.c3dir.geometry import closest_ray, satellite_frame, scan_angles
+from c3dir.model.c3dir import MASK_COLUMNS, WATER_COLUMNS, decode_numpy
+from c3dir.constants import LEVELS_KM, MASK_THRESHOLD, SPECIES, WATER
+from c3dir.geometry import closest_ray, satellite_frame, scan_angles
 
 def predict_samples(model, files):
     """predictions at every matched voxel of each sample file; returns one DataFrame."""

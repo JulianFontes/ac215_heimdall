@@ -9,13 +9,13 @@ outputs are cached, so re-running a range only fetches what's new
                                  (defaults to artifacts/figures)
 
 example:
-  uv run python -m heimdall.c3dir.data_scraping.scrape --start 2025-07-09T18:00 --end 2025-07-09T20:00 --plot
+  uv run python -m c3dir.data_scraping.scrape --start 2025-07-09T18:00 --end 2025-07-09T20:00 --plot
 """
 import argparse
 
-from heimdall.c3dir.data_scraping.earthcare import EarthCareLabels
-from heimdall.c3dir.data_scraping.goes import GOES19
-from heimdall.paths import DATA_DIR, FIGURES_DIR
+from c3dir.data_scraping.earthcare import EarthCareLabels
+from c3dir.data_scraping.goes import GOES19
+from c3dir.paths import DATA_DIR, FIGURES_DIR
 
 
 def scrape(start, end, data_dir=DATA_DIR, domain="F", keep_raw=False, plot_dir=None):
@@ -25,7 +25,7 @@ def scrape(start, end, data_dir=DATA_DIR, domain="F", keep_raw=False, plot_dir=N
     if plot_dir:  # plotting libraries are only needed when plotting
         import matplotlib.pyplot as plt
 
-        from heimdall.c3dir.plots.collocation_plots import Plotting
+        from c3dir.plots.collocation_plots import Plotting
         plotting = Plotting(plot_dir)
     else:
         plotting = None
