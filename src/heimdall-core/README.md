@@ -9,6 +9,8 @@ stay small. It provides these modules of the `c3dir` package, which `model-core`
 | `c3dir/constants.py` | C3DIR levels, bands, target names and order |
 | `c3dir/geometry.py` | GOES-19 line-of-sight geometry (`scan_angles`, `ray_point`, `ray_latlon`, `closest_ray`, `within_view`) |
 | `c3dir/paths.py` | the data folders every service reads and writes (`data/raw`, `data/processed`, `data/cache`, `data/predictions`, `artifacts/models`, `artifacts/figures`) |
+| `c3dir/bucket.py` | the shared GCS bucket, same layout as `paths.py` (`pull`, `push`, `folders`); needs the `gcs` extra (`heimdall-core[gcs]`) |
+| `c3dir/sync.py` | script: pull and push bucket folders (settings at the top) |
 | `c3dir/plot_style.py` | shared figure style (Arial bold) and colors; needs the `plots` extra (`heimdall-core[plots]`) |
 
 Services install it from `../heimdall-core` (see their `pyproject.toml`). See

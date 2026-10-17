@@ -52,17 +52,20 @@ Each run has its settings at the top of its file: edit them, then run from the r
 EarthCARE downloads need the one-time ESA MAAP login setup
 (https://tropos-rsd.github.io/earthcarekit/setup/).
 
-**1. Collect:** `uv run --project src/data-processing python -m c3dir.collect`
+**1. Collect:** `uv run --project src/data-processing --env-file .env python -m c3dir.collect`
 
 Set `START` / `END` (UTC) to a time window. It finds the EarthCARE frames GOES-19 can see,
 downloads them, and keeps the GOES strips around each overpass. Cached, so re-running a window
 only fetches what's new (a day of 18–20 UTC passes takes a few minutes).
 
-**2. Process:** `uv run --project src/data-processing python -m c3dir.process`
+**2. Process:** `uv run --project src/data-processing --env-file .env python -m c3dir.process`
 
 Converts new frames to labels, collocates every new strip, plots one example pair from
 `START` / `END`, then builds samples and splits them by date (`VAL_AFTER`, `TEST_AFTER`: dates
 from which days go to validation / test; `None` splits ~80/10/10 by date).
+
+With `PUSH = True` (the default), both steps copy their new files to the shared GCS bucket at the
+end, in the same layout as the local folders (`heimdall-core/c3dir/bucket.py`).
 
 **3. Train and evaluate:** `uv run --project src/model-train python -m c3dir.train`
 
