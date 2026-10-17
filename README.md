@@ -34,12 +34,32 @@ C3DIR predicts 3D cloud structure from GOES-19 imagery, trained on EarthCARE clo
 `model-core`, `model-train` and `model-deploy`, with torch-free shared code in `heimdall-core`. Run each step from this (repo root) folder:
 
 ```bash
-uv run --project src/data-processing python -m c3dir.collect   # download EarthCARE frames and GOES-19 strips
-uv run --project src/data-processing python -m c3dir.process   # labels, collocation, training samples
+uv run --project src/data-processing --env-file .env python -m c3dir.collect   # download EarthCARE frames and GOES-19 strips
+uv run --project src/data-processing --env-file .env python -m c3dir.process   # labels, collocation, training samples
 uv run --project src/model-train python -m c3dir.train         # train and evaluate a new version
 uv run --project src/model-deploy python -m c3dir.predict      # 3D clouds on any GOES-19 scan
 ```
 
 Edit the settings at the top of each file first. Data goes to `data/` and models and figures to
-`artifacts/` (both git-ignored). See [`docs/c3dir.md`](docs/c3dir.md) for how the pipeline works,
+`artifacts/` (both git-ignored); `collect` and `process` also push their new files to the shared
+bucket (`PUSH` setting, see below). See [`docs/c3dir.md`](docs/c3dir.md) for how the pipeline works,
 data formats and assumptions.
+
+## Shared data and models (GCS bucket)
+
+Everyone's data and models live in one Google Cloud Storage bucket with the same layout as the local
+folders (`raw/`, `processed/`, `predictions/`, `models/<model>/<version>/`, `figures/`). Set up once:
+
+1. Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install), then run `gcloud auth application-default login`
+   (the project owner adds each teammate's Google account to the bucket with the Storage Object Admin role).
+2. Copy `.env.example` to `.env` and set `HEIMDALL_BUCKET`.
+
+Then pull a teammate's model or push yours by editing the settings in
+[`src/heimdall-core/c3dir/sync.py`](src/heimdall-core/c3dir/sync.py) and running:
+
+```bash
+uv run --project src/heimdall-core --extra gcs --env-file .env python -m c3dir.sync
+```
+
+Files only copy when new or changed, and nothing is ever deleted. Models are never overwritten: push a
+new version folder instead.

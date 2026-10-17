@@ -12,6 +12,9 @@ dependencies = [
 plots = [
     "matplotlib",  # c3dir.plot_style
 ]
+gcs = [
+    "google-cloud-storage",  # c3dir.bucket, the shared bucket
+]
 
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]

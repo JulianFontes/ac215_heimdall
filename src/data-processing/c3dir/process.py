@@ -7,17 +7,19 @@
   4. build training samples and split them by date into train / val / test
      -> PROCESSED_DIR/c3dir/samples/
 
-everything is cached, so a second run only processes what's new. collect data first with
-c3dir.collect; train next with model-train's c3dir.train. change the settings below and run from
-the repo root:
+everything is cached, so a second run only processes what's new. with PUSH, the new processed files
+are copied to the shared bucket at the end. collect data first with c3dir.collect; train next with
+model-train's c3dir.train. change the settings below and run from the repo root (.env names the
+bucket):
 
-  uv run --project src/data-processing python -m c3dir.process
+  uv run --project src/data-processing --env-file .env python -m c3dir.process
 """
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import xarray as xr
 
+from c3dir.bucket import push
 from c3dir.collocation import Collocation
 from c3dir.labels import EarthCareLabels
 from c3dir.plots import Plotting
@@ -33,6 +35,7 @@ VOXEL_RAYS = True  # voxel figure: GOES lines of sight through the curtain (Fals
 PLOT_DIR = FIGURES_DIR / "c3dir_example"
 VAL_AFTER = None  # date: days from here go to validation; None splits ~80/10/10 by date
 TEST_AFTER = None  # date: days from here go to test
+PUSH = True  # bucket setting: copy new processed files to the shared bucket at the end (only new or changed files)
 
 
 def cloudy_profiles(pair):
@@ -65,3 +68,7 @@ if pairs:
 samples = Samples()
 samples.build()
 samples.split(val_after=VAL_AFTER, test_after=TEST_AFTER)
+
+# step 5: share the processed data
+if PUSH:
+    push("processed/c3dir")

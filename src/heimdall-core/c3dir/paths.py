@@ -1,7 +1,7 @@
 """where every service reads and writes, the data contract between services.
 
 services only hand data to each other through these folders. locally they sit under data/ and
-artifacts/ at the repo root (git-ignored); on GCP the same layout becomes prefixes in a bucket,
+artifacts/ at the repo root (git-ignored); the shared bucket has the same layout (see bucket.py),
 copied to local disk at the start of a job and back at the end. HEIMDALL_DATA_DIR and
 HEIMDALL_ARTIFACTS_DIR move the roots, e.g. to mounted volumes in a container.
 

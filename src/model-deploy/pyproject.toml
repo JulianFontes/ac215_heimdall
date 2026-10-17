@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "C3DIR predictions on live GOES-19 scans, and forecasts from trained nowcasting checkpoints"
 requires-python = ">=3.14, <3.15"
 dependencies = [
-    "heimdall-core[plots]",
+    "heimdall-core[plots,gcs]",
     "model-core",
     "geopandas",
     "goes2go",
