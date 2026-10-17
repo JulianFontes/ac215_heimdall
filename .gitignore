@@ -1,17 +1,35 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-
-# Environments
-.venv/
+.DS_Store
 
 # Scraped data, trained models and generated figures
-data/
+data/*
+models/*
 artifacts/*/*
 !artifacts/*/.gitkeep
+src/heimdall-frontend/public/data/*
+training_runs/
+sandbox/
+.archive/
 
 # User directories
-.earthcare_config/
-.DS_Store
+.earthcare_config/*
+
+# Node / frontend
+node_modules
+node_modules.nosync
+dist
+dist.nosync
+.vite/
+*.local
+
+# Python venvs (may be a symlink to a venv outside iCloud)
+.venv
+.venv.nosync
+
+# Local env (keep .env.example tracked) to ensure API keys aren't included in the repo
+.env
 
 # IDE settings
 .idea/
+.vscode

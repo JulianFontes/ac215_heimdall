@@ -1,34 +1,45 @@
-# heimdall
+## Running Heimdall
 
-3D cloud structure from GOES-19 imagery, trained on EarthCARE cloud profiles (following
-White et al., 2026).
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
 
-## Services
+All services are defined in [`docker-compose.yml`](docker-compose.yml). Run every command below from this (repo root) folder.
 
-Each service in `src/` has its own `pyproject.toml` (managed with uv) and is run from its
-own folder.
-
-| Service | What it does |
-|---|---|
-| [`src/c3dir/`](src/c3dir/README.md) | scrape and collocate EarthCARE with GOES-19, train C3DIR, predict 3D clouds |
-| `src/solar-forecasting/` | SURFRAD station exploration for solar applications |
-| [`src/nowcasting/`](src/nowcasting/README.md) | placeholder: GOES nowcasting and cloud forecasting |
-| [`src/frontend-app/`](src/frontend-app/README.md) | placeholder: web front end |
-
-Data and outputs go to `data/` and `artifacts/` at the repo root (git-ignored), shared by
-every service.
-
-## C3DIR quick start
-
+### Setup (once)
+Copy the environment template and fill in any values you need (`.env` is git-ignored; see the comments in `.env.example`):
 ```bash
-cd src/c3dir
-uv sync
-uv run python scripts/c3dir_runner.py
+cp .env.example .env
 ```
 
-Edit the settings at the top of `scripts/c3dir_runner.py` (time window, etc.) first.
-EarthCARE downloads need a one-time ESA MAAP login setup:
-https://tropos-rsd.github.io/earthcarekit/setup/
+### Build, start, stop
+Everything goes through [`heimdall_docker.sh`](heimdall_docker.sh), a thin wrapper around `docker compose`.
+Leave out the service name to act on all services in `docker-compose.yml`.
+```bash
+./heimdall_docker.sh build [service...]   # 1. build images (again after code or .env changes; add --no-cache for a clean rebuild)
+./heimdall_docker.sh up    [service...]   # 2. start containers in the background
+./heimdall_docker.sh down                 # 3. stop and remove containers (images are kept)
+```
 
-See [`src/c3dir/README.md`](src/c3dir/README.md) for training, prediction, how the code
-works, data formats, and assumptions.
+### Services
+| Service | URL | Details |
+|---|---|---|
+| `frontend` | http://localhost:8080 | [frontend README](src/heimdall-frontend/README.md) |
+
+Each service's README covers its own data, configuration and local development setup.
+
+## C3DIR: 3D clouds from GOES-19
+
+C3DIR predicts 3D cloud structure from GOES-19 imagery, trained on EarthCARE cloud profiles
+(following White et al., 2026). Its code is the `c3dir` package in `data-processing`,
+`model-core`, `model-train` and `model-deploy`, with torch-free shared code in `heimdall-core`. Run each step from this (repo root) folder:
+
+```bash
+uv run --project src/data-processing python -m c3dir.collect   # download EarthCARE frames and GOES-19 strips
+uv run --project src/data-processing python -m c3dir.process   # labels, collocation, training samples
+uv run --project src/model-train python -m c3dir.train         # train and evaluate a new version
+uv run --project src/model-deploy python -m c3dir.predict      # 3D clouds on any GOES-19 scan
+```
+
+Edit the settings at the top of each file first. Data goes to `data/` and models and figures to
+`artifacts/` (both git-ignored). See [`docs/c3dir.md`](docs/c3dir.md) for how the pipeline works,
+data formats and assumptions.

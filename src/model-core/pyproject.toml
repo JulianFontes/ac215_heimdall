@@ -1,0 +1,27 @@
+[project]
+name = "model-core"
+version = "0.1.0"
+description = "Shared model architectures, constants and preprocessing for model-train and model-deploy"
+requires-python = ">=3.14, <3.15"
+dependencies = [
+    "heimdall-core",  # c3dir constants, geometry, data folders (torch-free, shared with data-processing)
+    "netcdf4",
+    "numpy",
+    "pandas",
+    "torch",
+    "xarray",
+]
+
+[tool.uv.sources]
+heimdall-core = { path = "../heimdall-core", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+# Namespace packages (no __init__.py): model-train and model-deploy add their own modules to
+# c3dir / c3dir_nowcasting / goes_nowcasting, e.g. c3dir_nowcasting.train next to c3dir_nowcasting.model from here.
+[tool.uv.build-backend]
+module-root = ""
+module-name = ["c3dir", "c3dir_nowcasting", "goes_nowcasting"]
+namespace = true
