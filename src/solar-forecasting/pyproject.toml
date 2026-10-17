@@ -1,0 +1,24 @@
+[project]
+name = "solar-forecasting"
+version = "0.1.0"
+description = "SURFRAD station exploration for solar applications"
+requires-python = ">=3.14, <3.15"
+# GOES-19 view geometry, data folders and figure style from heimdall-core's c3dir
+dependencies = [
+    "heimdall-core[plots]",
+    "cartopy",
+    "pandas",
+    "pvlib",
+    "requests",
+]
+
+[tool.uv.sources]
+heimdall-core = { path = "../heimdall-core", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+module-name = "solar_forecasting"

@@ -1,0 +1,28 @@
+[project]
+name = "data-processing"
+version = "0.1.0"
+description = "Download and preprocessing of the raw data into the files model-train and model-deploy read"
+requires-python = ">=3.14, <3.15"
+# heimdall-core, not model-core: the shared geometry without torch, for a lighter image
+dependencies = [
+    "heimdall-core[plots]",
+    "cartopy",
+    "earthcarekit",
+    "goes2go",
+    "netcdf4",
+    "pandas",
+    "xarray",
+]
+
+[tool.uv.sources]
+heimdall-core = { path = "../heimdall-core", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+# Namespace package shared with heimdall-core (see its pyproject.toml).
+[tool.uv.build-backend]
+module-root = ""
+module-name = ["c3dir"]
+namespace = true

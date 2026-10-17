@@ -358,6 +358,28 @@ wheels = [
 ]
 
 [[package]]
+name = "heimdall-core"
+version = "0.1.0"
+source = { editable = "../heimdall-core" }
+dependencies = [
+    { name = "numpy" },
+    { name = "pyproj" },
+]
+
+[package.optional-dependencies]
+plots = [
+    { name = "matplotlib" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "matplotlib", marker = "extra == 'plots'" },
+    { name = "numpy" },
+    { name = "pyproj" },
+]
+provides-extras = ["plots"]
+
+[[package]]
 name = "imageio-ffmpeg"
 version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
@@ -674,16 +696,20 @@ name = "model-core"
 version = "0.1.0"
 source = { editable = "../model-core" }
 dependencies = [
+    { name = "heimdall-core" },
     { name = "netcdf4" },
     { name = "numpy" },
+    { name = "pandas" },
     { name = "torch" },
     { name = "xarray" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "heimdall-core", editable = "../heimdall-core" },
     { name = "netcdf4" },
     { name = "numpy" },
+    { name = "pandas" },
     { name = "torch" },
     { name = "xarray" },
 ]
@@ -694,6 +720,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "cartopy" },
+    { name = "heimdall-core", extra = ["plots"] },
     { name = "imageio-ffmpeg" },
     { name = "ipykernel" },
     { name = "ipywidgets" },
@@ -701,6 +728,7 @@ dependencies = [
     { name = "model-core" },
     { name = "pandas" },
     { name = "scikit-learn" },
+    { name = "scipy" },
     { name = "torchmetrics" },
     { name = "tqdm" },
     { name = "xbatcher" },
@@ -709,6 +737,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "cartopy" },
+    { name = "heimdall-core", extras = ["plots"], editable = "../heimdall-core" },
     { name = "imageio-ffmpeg" },
     { name = "ipykernel" },
     { name = "ipywidgets" },
@@ -716,6 +745,7 @@ requires-dist = [
     { name = "model-core", editable = "../model-core" },
     { name = "pandas" },
     { name = "scikit-learn" },
+    { name = "scipy" },
     { name = "torchmetrics" },
     { name = "tqdm" },
     { name = "xbatcher" },

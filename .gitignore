@@ -2,15 +2,18 @@
 __pycache__/
 .DS_Store
 
-# User directories
+# Scraped data, trained models and generated figures
 data/*
 models/*
+artifacts/*/*
+!artifacts/*/.gitkeep
 src/heimdall-frontend/public/data/*
 training_runs/
 sandbox/
-.earthcare_config/*
 .archive/
 
+# User directories
+.earthcare_config/*
 
 # Node / frontend
 node_modules
@@ -25,6 +28,8 @@ dist.nosync
 .venv.nosync
 
 # Local env (keep .env.example tracked) to ensure API keys aren't included in the repo
-# Use the example as 
 .env
+
+# IDE settings
+.idea/
 .vscode

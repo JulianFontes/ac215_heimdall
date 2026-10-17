@@ -1,3 +1,13 @@
 # C3DIR (model-core)
 
-Placeholder for the shared architecture, constants and preprocessing of the model trained on real C3DIR data, once it is available. Same role as `c3dir_nowcasting/` next to it, which uses C3DIR-like volumes derived from ERA5. Not set up yet.
+The C3DIR model (3D clouds from GOES-19, trained on EarthCARE; White et al., 2026), shared by
+`model-train` and `model-deploy`:
+
+| File | What it does |
+|---|---|
+| `network.py` | `C3DIRNet`: U-Net of ConvNeXt blocks, 8 outputs × 80 levels per pixel |
+| `model.py` | `C3DIR`: prediction (`predict_voxels`), `save` and `load` of versioned models |
+
+The torch-free shared modules (constants, geometry, data folders, figure style) are in
+[`heimdall-core`](../../heimdall-core/README.md), so `data-processing` can use them without torch.
+See [`docs/c3dir.md`](../../../docs/c3dir.md) for the whole pipeline.

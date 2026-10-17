@@ -1,9 +1,10 @@
 [project]
 name = "model-train"
 version = "0.1.0"
-description = "Training and evaluation of the nowcasting models"
+description = "Training and evaluation of C3DIR and the nowcasting models"
 requires-python = ">=3.14, <3.15"
 dependencies = [
+    "heimdall-core[plots]",
     "model-core",
     "cartopy",
     "imageio-ffmpeg",
@@ -12,12 +13,14 @@ dependencies = [
     "matplotlib",
     "pandas",
     "scikit-learn",
+    "scipy",
     "torchmetrics",
     "tqdm",
     "xbatcher",
 ]
 
 [tool.uv.sources]
+heimdall-core = { path = "../heimdall-core", editable = true }
 model-core = { path = "../model-core", editable = true }
 
 [build-system]
@@ -27,5 +30,5 @@ build-backend = "uv_build"
 # Namespace packages shared with model-core (see its pyproject.toml).
 [tool.uv.build-backend]
 module-root = ""
-module-name = ["c3dir_nowcasting", "goes_nowcasting"]
+module-name = ["c3dir", "c3dir_nowcasting", "goes_nowcasting"]
 namespace = true
