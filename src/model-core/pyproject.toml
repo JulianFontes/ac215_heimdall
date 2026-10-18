@@ -23,5 +23,5 @@ build-backend = "uv_build"
 # c3dir / c3dir_nowcasting / goes_nowcasting, e.g. c3dir_nowcasting.train next to c3dir_nowcasting.model from here.
 [tool.uv.build-backend]
 module-root = ""
-module-name = ["c3dir", "c3dir_nowcasting", "goes_nowcasting"]
+module-name = ["c3dir", "c3dir_forecasting", "c3dir_nowcasting", "goes_nowcasting"]
 namespace = true
