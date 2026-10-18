@@ -24,5 +24,5 @@ build-backend = "uv_build"
 # Namespace package shared with heimdall-core (see its pyproject.toml).
 [tool.uv.build-backend]
 module-root = ""
-module-name = ["c3dir"]
+module-name = ["c3dir", "c3dir_forecasting"]
 namespace = true
