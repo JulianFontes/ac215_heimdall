@@ -67,12 +67,14 @@ from which days go to validation / test; `None` splits ~80/10/10 by date).
 With `PUSH = True` (the default), both steps copy their new files to the shared GCS bucket at the
 end, in the same layout as the local folders (`heimdall-core/utilities/bucket.py`).
 
-**3. Train and evaluate:** `uv run --project src/model-train python -m c3dir.train`
+**3. Train and evaluate:** `uv run --project src/model-train --env-file .env python -m c3dir.train`
 
 Trains on the split and saves the next version to `artifacts/models/c3dir/` (v001, v002, ...) with
 test scores and figures. Settings: `MODEL` (network size, e.g. `ModelConfig(width=32)`; paper: 64),
 `TRAINING` (steps, batch size, validation interval, e.g. `TrainConfig(steps=3000)`), `VERSION`
-(`None` for the next number, or a name like `"v003_wide"`). Training uses CUDA or Apple MPS when
+(`None` for the next number, or a name like `"v003_wide"`), `PULL` (off by default: copy
+`processed/c3dir` from the shared bucket first, replacing local files that differ) and `PUSH` (on by
+default: copy the new version to the bucket at the end). Training uses CUDA or Apple MPS when
 available; ~30 days of data and 3,000 steps take about an hour on a laptop.
 
 **4. Predict:** `uv run --project src/model-deploy python -m c3dir.predict`

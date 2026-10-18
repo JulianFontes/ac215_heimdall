@@ -17,18 +17,21 @@ HEIMDALL_BUCKET names the bucket. credentials come from Application Default Cred
   pull("models/c3dir/v002")      bucket -> local, only files that are new or changed
   push("processed/c3dir")        local -> bucket, only files that are new or changed
   folders("models/c3dir")        what is in the bucket, e.g. ["v001", "v002"]
-neither direction deletes files.
+neither direction deletes files; a pull replaces local files that differ from the bucket.
 
-use in each service (any model, e.g. c3dir or goes_nowcasting; needs heimdall-core[gcs]):
+use in a service: the service depends on heimdall-core[gcs], its scripts pull their inputs at the
+start and push their outputs at the end, and everything in between reads and writes local folders
+from paths.py. a PULL / PUSH setting at the top of each script turns this on or off:
 
   from utilities.bucket import pull, push
-  data-processing   push("raw/<source>") after downloading and push("processed/<model>") after
-                    processing; pull("processed/<model>") first when new data is added to existing
-                    data (c3dir.collect and c3dir.process do this with PUSH = True)
+  data-processing   push("raw/<source>") after downloading, push("processed/<model>") after processing
   model-train       pull("processed/<model>") before training, push("models/<model>/<version>")
-                    after; never push into an existing version
+                    after; push new versions only, never into an existing one
   model-deploy      pull("models/<model>/<version>") before loading the model,
                     push("predictions/<model>") after predicting
+
+for an example, see c3dir: data-processing's c3dir/collect.py and c3dir/process.py (PUSH) and
+model-train's c3dir/train.py (PULL and PUSH). utilities.sync pulls or pushes any folder by hand.
 """
 import base64
 import hashlib

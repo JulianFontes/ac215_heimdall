@@ -36,13 +36,13 @@ C3DIR predicts 3D cloud structure from GOES-19 imagery, trained on EarthCARE clo
 ```bash
 uv run --project src/data-processing --env-file .env python -m c3dir.collect   # download EarthCARE frames and GOES-19 strips
 uv run --project src/data-processing --env-file .env python -m c3dir.process   # labels, collocation, training samples
-uv run --project src/model-train python -m c3dir.train         # train and evaluate a new version
-uv run --project src/model-deploy python -m c3dir.predict      # 3D clouds on any GOES-19 scan
+uv run --project src/model-train --env-file .env python -m c3dir.train         # train and evaluate a new version
+uv run --project src/model-deploy python -m c3dir.predict                      # 3D clouds on any GOES-19 scan
 ```
 
 Edit the settings at the top of each file first. Data goes to `data/` and models and figures to
-`artifacts/` (both git-ignored); `collect` and `process` also push their new files to the shared
-bucket (`PUSH` setting, see below). See [`docs/c3dir.md`](docs/c3dir.md) for how the pipeline works,
+`artifacts/` (both git-ignored). `collect` and `process` push their new files to the shared bucket,
+and `train` pushes the new model (`PUSH` settings; `train` can also pull `processed/c3dir` first with `PULL`, see below). See [`docs/c3dir.md`](docs/c3dir.md) for how the pipeline works,
 data formats and assumptions.
 
 ## Shared data and models (GCS bucket)
