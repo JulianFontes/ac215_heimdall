@@ -1,0 +1,7 @@
+# keep local environments, caches and the front end out of the python service images
+**/.venv
+**/.venv.nosync
+**/__pycache__
+**/.DS_Store
+**/*.pyc
+heimdall-frontend
