@@ -47,14 +47,14 @@ data formats and assumptions.
 
 ## Shared data and models (GCS bucket)
 
-Everyone's data and models live in one Google Cloud Storage bucket with the same layout as the local
+Data and models are stored in one Google Cloud Storage bucket with the same layout as the local
 folders (`raw/`, `processed/`, `predictions/`, `models/<model>/<version>/`, `figures/`). Set up once:
 
 1. Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install), then run `gcloud auth application-default login`
-   (the project owner adds each teammate's Google account to the bucket with the Storage Object Admin role).
+   with a Google account that has access to the bucket (Storage Object Admin role).
 2. Copy `.env.example` to `.env` and set `HEIMDALL_BUCKET`.
 
-Then pull a teammate's model or push yours by editing the settings in
+To pull or push folders, edit the settings in
 [`src/heimdall-core/utilities/sync.py`](src/heimdall-core/utilities/sync.py) and running:
 
 ```bash

@@ -1,4 +1,4 @@
-"""the shared GCS bucket: one place where every service and teammate reads and writes data and models.
+"""the shared GCS bucket: one place where every service reads and writes data and models.
 
 the bucket has the same layout as paths.py, so a bucket folder and its local folder always match:
 
@@ -17,7 +17,18 @@ HEIMDALL_BUCKET names the bucket. credentials come from Application Default Cred
   pull("models/c3dir/v002")      bucket -> local, only files that are new or changed
   push("processed/c3dir")        local -> bucket, only files that are new or changed
   folders("models/c3dir")        what is in the bucket, e.g. ["v001", "v002"]
-neither direction deletes files, so a pull never removes local work and a push never removes a teammate's.
+neither direction deletes files.
+
+use in each service (any model, e.g. c3dir or goes_nowcasting; needs heimdall-core[gcs]):
+
+  from utilities.bucket import pull, push
+  data-processing   push("raw/<source>") after downloading and push("processed/<model>") after
+                    processing; pull("processed/<model>") first when new data is added to existing
+                    data (c3dir.collect and c3dir.process do this with PUSH = True)
+  model-train       pull("processed/<model>") before training, push("models/<model>/<version>")
+                    after; never push into an existing version
+  model-deploy      pull("models/<model>/<version>") before loading the model,
+                    push("predictions/<model>") after predicting
 """
 import base64
 import hashlib
