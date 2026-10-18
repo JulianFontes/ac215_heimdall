@@ -17,10 +17,13 @@ scores and figures.
 From the project root:
 
 ```bash
-uv run --project src/model-train python -m c3dir.train
+uv run --project src/model-train --env-file .env python -m c3dir.train
 ```
 
-Edit `MODEL`, `TRAINING` and `VERSION` at the top of `train.py` first. Training uses CUDA or
+Edit `MODEL`, `TRAINING` and `VERSION` at the top of `train.py` first. With `PUSH` (on by
+default), the new model version is pushed to the shared bucket at the end. With `PULL` (off by
+default), `processed/c3dir` is first pulled from the bucket, replacing local files that differ;
+`.env` names the bucket. Training uses CUDA or
 Apple MPS when available; ~30 days of data and 3,000 steps take about an hour on a laptop.
 
 See [`docs/c3dir.md`](../../../docs/c3dir.md) for the whole pipeline.

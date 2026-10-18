@@ -16,7 +16,7 @@ import xarray as xr
 
 from c3dir.inference import predict_region, sun_zenith
 from c3dir.model import C3DIR
-from c3dir.paths import PROCESSED_DIR
+from utilities.paths import PROCESSED_DIR
 
 # settings: change these
 MODEL_VERSION = "v002"

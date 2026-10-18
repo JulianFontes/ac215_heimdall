@@ -14,7 +14,7 @@ import pandas as pd
 
 from c3dir.constants import GOES19_LON, VIEW_RADIUS_DEG
 from c3dir.geometry import view_circle, within_view
-from c3dir.paths import RAW_DIR
+from utilities.paths import RAW_DIR
 
 
 class EarthCareFrames:

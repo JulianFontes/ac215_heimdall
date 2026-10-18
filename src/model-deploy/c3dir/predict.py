@@ -10,11 +10,11 @@ and the column CSV go to FIGURES_DIR/c3dir_predict/, the 3D field to PREDICTIONS
 """
 import matplotlib.pyplot as plt
 
-from c3dir.paths import FIGURES_DIR, PREDICTIONS_DIR
 from c3dir.inference import (SURFRAD, check_daylight, goes_scene, predict_column, predict_region,
                              scan_time, summary)
 from c3dir.plots import plot_column, plot_region
 from c3dir.model import C3DIR
+from utilities.paths import FIGURES_DIR, PREDICTIONS_DIR
 
 # settings: change these
 SITE = "psu"  # a SURFRAD code (bon, dra, fpk, gwn, psu, sxf, tbl), or None to use LAT / LON

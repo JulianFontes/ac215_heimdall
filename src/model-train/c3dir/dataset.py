@@ -19,7 +19,7 @@ import pandas as pd
 import xarray as xr
 
 from c3dir.constants import BANDS
-from c3dir.paths import PROCESSED_DIR
+from utilities.paths import PROCESSED_DIR
 
 SAMPLES_DIR = PROCESSED_DIR / "c3dir" / "samples"
 

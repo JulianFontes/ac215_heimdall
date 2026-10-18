@@ -15,7 +15,7 @@ from matplotlib.ticker import MaxNLocator
 
 from c3dir.constants import BANDS, MASK_THRESHOLD, TARGETS
 from c3dir.geometry import ray_point, satellite_frame, scan_angles
-from c3dir.plot_style import CLOUD_CMAP, NO_DATA_COLOR, RAY_COLOR, styled, true_color
+from utilities.plot_style import CLOUD_CMAP, NO_DATA_COLOR, RAY_COLOR, styled, true_color
 
 
 

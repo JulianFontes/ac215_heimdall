@@ -37,11 +37,11 @@ model-deploy        inference, plots                 predictions on any GOES-19 
 
 model-core          network (C3DIRNet), model (C3DIR: predict, save, load), shared by model-train
                     and model-deploy
-heimdall-core       constants, geometry, paths, plot_style: torch-free, shared by all four, so
-                    data-processing installs no torch
+heimdall-core       c3dir constants and geometry, plus utilities (paths, bucket, plot_style)
+                    shared by every model: torch-free, so data-processing installs no torch
 ```
 
-Services only exchange data through these folders (`c3dir/paths.py` in heimdall-core names them).
+Services only exchange data through these folders (`utilities/paths.py` in heimdall-core names them).
 They sit under `data/` and `artifacts/` at the repo root (git-ignored); on GCP the same layout
 becomes prefixes in a bucket. Set `HEIMDALL_DATA_DIR` / `HEIMDALL_ARTIFACTS_DIR` to move them,
 e.g. to mounted volumes in a container. Each service's `c3dir/README.md` lists its files.
@@ -52,24 +52,29 @@ Each run has its settings at the top of its file: edit them, then run from the r
 EarthCARE downloads need the one-time ESA MAAP login setup
 (https://tropos-rsd.github.io/earthcarekit/setup/).
 
-**1. Collect:** `uv run --project src/data-processing python -m c3dir.collect`
+**1. Collect:** `uv run --project src/data-processing --env-file .env python -m c3dir.collect`
 
 Set `START` / `END` (UTC) to a time window. It finds the EarthCARE frames GOES-19 can see,
 downloads them, and keeps the GOES strips around each overpass. Cached, so re-running a window
 only fetches what's new (a day of 18–20 UTC passes takes a few minutes).
 
-**2. Process:** `uv run --project src/data-processing python -m c3dir.process`
+**2. Process:** `uv run --project src/data-processing --env-file .env python -m c3dir.process`
 
 Converts new frames to labels, collocates every new strip, plots one example pair from
 `START` / `END`, then builds samples and splits them by date (`VAL_AFTER`, `TEST_AFTER`: dates
 from which days go to validation / test; `None` splits ~80/10/10 by date).
 
-**3. Train and evaluate:** `uv run --project src/model-train python -m c3dir.train`
+With `PUSH = True` (the default), both steps copy their new files to the shared GCS bucket at the
+end, in the same layout as the local folders (`heimdall-core/utilities/bucket.py`).
+
+**3. Train and evaluate:** `uv run --project src/model-train --env-file .env python -m c3dir.train`
 
 Trains on the split and saves the next version to `artifacts/models/c3dir/` (v001, v002, ...) with
 test scores and figures. Settings: `MODEL` (network size, e.g. `ModelConfig(width=32)`; paper: 64),
 `TRAINING` (steps, batch size, validation interval, e.g. `TrainConfig(steps=3000)`), `VERSION`
-(`None` for the next number, or a name like `"v003_wide"`). Training uses CUDA or Apple MPS when
+(`None` for the next number, or a name like `"v003_wide"`), `PULL` (off by default: copy
+`processed/c3dir` from the shared bucket first, replacing local files that differ) and `PUSH` (on by
+default: copy the new version to the bucket at the end). Training uses CUDA or Apple MPS when
 available; ~30 days of data and 3,000 steps take about an hour on a laptop.
 
 **4. Predict:** `uv run --project src/model-deploy python -m c3dir.predict`

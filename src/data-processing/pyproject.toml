@@ -5,7 +5,7 @@ description = "Download and preprocessing of the raw data into the files model-t
 requires-python = ">=3.14, <3.15"
 # heimdall-core, not model-core: the shared geometry without torch, for a lighter image
 dependencies = [
-    "heimdall-core[plots]",
+    "heimdall-core[plots,gcs]",
     "cartopy",
     "earthcarekit",
     "goes2go",

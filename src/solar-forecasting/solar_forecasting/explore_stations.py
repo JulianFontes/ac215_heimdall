@@ -27,8 +27,8 @@ from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 
 from c3dir.constants import GOES19_LON, VIEW_RADIUS_DEG
 from c3dir.geometry import view_circle
-from c3dir.paths import DATA_DIR, FIGURES_DIR
-from c3dir.plot_style import use as use_plot_style
+from utilities.paths import DATA_DIR, FIGURES_DIR
+from utilities.plot_style import use as use_plot_style
 
 # settings: change these
 START = "2025-01-01"  # UTC days, inclusive; a full year covers every season

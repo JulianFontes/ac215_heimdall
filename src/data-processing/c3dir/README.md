@@ -18,12 +18,14 @@ Builds C3DIR training data from EarthCARE and GOES-19 in two runs.
 From the project root:
 
 ```bash
-uv run --project src/data-processing python -m c3dir.collect
-uv run --project src/data-processing python -m c3dir.process
+uv run --project src/data-processing --env-file .env python -m c3dir.collect
+uv run --project src/data-processing --env-file .env python -m c3dir.process
 ```
 
 Edit `START` / `END` at the top of each script first (and `VAL_AFTER` / `TEST_AFTER` in
 `process.py` for the split). Both runs are cached, so re-running a window only does what's new.
+With `PUSH = True` (the default), each run copies its new files to the shared GCS bucket at the
+end (`collect`: `raw/earthcare`, `raw/goes`; `process`: `processed/c3dir`); `.env` names the bucket.
 EarthCARE downloads need a one-time ESA MAAP login setup:
 https://tropos-rsd.github.io/earthcarekit/setup/
 

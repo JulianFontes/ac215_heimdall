@@ -23,7 +23,7 @@ from goes2go import GOES
 
 from c3dir.constants import BANDS
 from c3dir.geometry import scan_angles
-from c3dir.paths import CACHE_DIR, PROCESSED_DIR
+from utilities.paths import CACHE_DIR, PROCESSED_DIR
 
 # settings: change these
 SITES = {  # slug: (name, lat, lon)

@@ -24,7 +24,7 @@ import xarray as xr
 from c3dir.labels import EarthCareLabels
 from c3dir.constants import BANDS, TARGETS
 from c3dir.geometry import closest_ray, satellite_frame, scan_angles
-from c3dir.paths import PROCESSED_DIR, RAW_DIR
+from utilities.paths import PROCESSED_DIR, RAW_DIR
 
 
 class Collocation:

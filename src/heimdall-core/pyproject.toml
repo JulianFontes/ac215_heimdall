@@ -1,7 +1,7 @@
 [project]
 name = "heimdall-core"
 version = "0.1.0"
-description = "Light shared code (no torch): C3DIR constants, GOES-19 line-of-sight geometry, data folders, figure style"
+description = "Light shared code (no torch): data folders, shared bucket, figure style (utilities); C3DIR constants and GOES-19 geometry (c3dir)"
 requires-python = ">=3.14, <3.15"
 dependencies = [
     "numpy",
@@ -10,16 +10,20 @@ dependencies = [
 
 [project.optional-dependencies]
 plots = [
-    "matplotlib",  # c3dir.plot_style
+    "matplotlib",  # utilities.plot_style
+]
+gcs = [
+    "google-cloud-storage",  # utilities.bucket, the shared bucket
 ]
 
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]
 build-backend = "uv_build"
 
-# Namespace package (no __init__.py): model-core, model-train, model-deploy and data-processing add
-# their own modules to c3dir, e.g. c3dir.model next to c3dir.geometry from here.
+# utilities: shared by every model and service. c3dir: a namespace package (no __init__.py) that
+# model-core, model-train, model-deploy and data-processing add their own modules to, e.g.
+# c3dir.model next to c3dir.geometry from here.
 [tool.uv.build-backend]
 module-root = ""
-module-name = ["c3dir"]
+module-name = ["c3dir", "utilities"]
 namespace = true

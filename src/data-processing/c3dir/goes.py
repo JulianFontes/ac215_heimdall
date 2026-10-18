@@ -21,7 +21,7 @@ from goes2go import GOES
 
 from c3dir.constants import BANDS, LEVELS_KM
 from c3dir.geometry import scan_angles
-from c3dir.paths import CACHE_DIR, RAW_DIR
+from utilities.paths import CACHE_DIR, RAW_DIR
 
 SCAN_MINUTES = {"F": 10, "C": 5}  # how often each domain gets scanned
 
