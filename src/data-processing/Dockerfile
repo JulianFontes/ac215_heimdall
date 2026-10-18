@@ -1,7 +1,7 @@
 # Heimdall data-processing: collects raw data and turns it into training data (no torch).
 # Build from src/ so heimdall-core (a path dependency) is in the build context:
 #   docker build -f src/data-processing/Dockerfile -t heimdall-data-processing src
-# Settings are environment variables (START, END, PULL, PUSH, ...; see c3dir/collect.py and c3dir/process.py).
+# Settings are environment variables (START, END, PUSH, ...; see c3dir/collect.py and c3dir/process.py).
 # Credentials are never baked in: locally they are mounted (see docker-compose.yml), on GCP they come
 # from the job's service account and Secret Manager.
 
@@ -27,11 +27,10 @@ COPY heimdall-core /app/src/heimdall-core
 COPY data-processing ./
 RUN uv sync --frozen --no-dev
 
-# data stays inside the container (or a mounted volume); a fresh machine pulls processed data first
+# data stays inside the container (or a mounted volume) and is pushed to the bucket at the end
 ENV PATH="/app/src/data-processing/.venv/bin:$PATH" \
     HEIMDALL_DATA_DIR=/data \
     HEIMDALL_ARTIFACTS_DIR=/artifacts \
-    PULL=true \
     PUSH=true
 
 # collect the window, then process everything collected

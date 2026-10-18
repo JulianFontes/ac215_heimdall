@@ -32,7 +32,6 @@ services:
       # settings for c3dir.collect / c3dir.process; empty keeps the script's default
       START: ${START:-}
       END: ${END:-}
-      PULL: ${PULL:-true} # pull processed/c3dir first, so samples cover all processed days
       PUSH: ${PUSH:-true}
     volumes:
       # local data, so local runs and container runs share files (a cloud job starts empty and pulls)

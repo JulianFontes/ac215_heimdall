@@ -3,7 +3,7 @@ keeps the weights with the lowest validation loss. the model itself (predict, sa
 c3dir.model in model-core.
 
   model = C3DIR(ModelConfig())
-  fit(model, C3DIRDataset("train"), C3DIRDataset("val"), TrainConfig())
+  fit(model, C3DIRDataset("train", table, stats), C3DIRDataset("val", table, stats), TrainConfig())
   model.save()
 """
 import time

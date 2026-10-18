@@ -25,9 +25,10 @@ data-processing     EarthCareFrames   earthcare.py   find and download ACM_CAP_2
       │                                              → data/raw/earthcare/, data/raw/goes/
       │             EarthCareLabels   labels.py      bin frames onto 80 levels of 0.25 km
       │             Collocation       collocation.py match voxels along GOES lines of sight
-      │             Samples           samples.py     training samples, train / val / test split
+      │             Samples           samples.py     one training sample per collocated pair
       ▼                                              → data/processed/c3dir/{labels,collocated,samples}/
-model-train         C3DIRDataset      dataset.py     64×64 patches
+model-train         split_samples     splits.py      train / val / test split by day, band statistics
+                    C3DIRDataset      dataset.py     64×64 patches
                     fit               training.py    the loss and training loop
                     evaluation, plots                test scores and figures
       │                                              → artifacts/models/c3dir/<version>/
@@ -61,18 +62,21 @@ only fetches what's new (a day of 18–20 UTC passes takes a few minutes).
 **2. Process:** `uv run --project src/data-processing --env-file .env python -m c3dir.process`
 
 Converts new frames to labels, collocates every new strip, plots one example pair from
-`START` / `END`, then builds samples and splits them by date (`VAL_AFTER`, `TEST_AFTER`: dates
-from which days go to validation / test; `None` splits ~80/10/10 by date).
+`START` / `END`, then builds a sample from every new pair. Each sample stands alone, so a run only
+needs its own days on disk.
 
 With `PUSH = True` (the default), both steps copy their new files to the shared GCS bucket at the
 end, in the same layout as the local folders (`heimdall-core/utilities/bucket.py`).
 
 **3. Train and evaluate:** `uv run --project src/model-train --env-file .env python -m c3dir.train`
 
-Trains on the split and saves the next version to `artifacts/models/c3dir/` (v001, v002, ...) with
-test scores and figures. Settings: `MODEL` (network size, e.g. `ModelConfig(width=32)`; paper: 64),
+Splits every sample into train / val / test by date and computes the band normalization from the
+train samples (`splits.py`), trains, and saves the next version to `artifacts/models/c3dir/`
+(v001, v002, ...) with test scores, figures, and the split and band statistics it used
+(`splits.csv`, `band_stats.csv`). Settings: `MODEL` (network size, e.g. `ModelConfig(width=32)`; paper: 64),
 `TRAINING` (steps, batch size, validation interval, e.g. `TrainConfig(steps=3000)`), `VERSION`
-(`None` for the next number, or a name like `"v003_wide"`), `PULL` (off by default: copy
+(`None` for the next number, or a name like `"v003_wide"`), `VAL_AFTER` / `TEST_AFTER` (dates from
+which days go to validation / test; `None` splits ~80/10/10 by date), `PULL` (off by default: copy
 `processed/c3dir` from the shared bucket first, replacing local files that differ) and `PUSH` (on by
 default: copy the new version to the bucket at the end). Training uses CUDA or Apple MPS when
 available; ~30 days of data and 3,000 steps take about an hour on a laptop.
@@ -140,7 +144,7 @@ EarthCARE track. The model's vertical axis follows those slanted lines of sight.
 | `data/processed/c3dir/labels/<frame>.nc` | EarthCARE labels for one frame: `(profile, level)` | ~10–15 MB |
 | `data/processed/c3dir/collocated/<frame>_<scan>_<domain>.nc` | GOES crop `(y, x)`, matched profiles `(profile, level)` and matched voxels `(voxel)` | ~1–20 MB |
 | `data/processed/c3dir/samples/<pair>.nc` | GOES image `(band, y, x)` plus the matched voxels | ~1–30 MB |
-| `data/processed/c3dir/samples/splits.csv`, `band_stats.csv` | split per sample; per-band mean and std | tiny |
+| `artifacts/models/c3dir/<version>/splits.csv`, `band_stats.csv` | the split per sample and per-band mean and std a model was trained with | tiny |
 
 Full GOES scans (~250 MB) are downloaded to `data/cache/` and deleted once the strip is cut,
 unless `KEEP_FULL` is set in the collector.

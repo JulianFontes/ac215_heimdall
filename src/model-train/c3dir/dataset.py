@@ -1,9 +1,8 @@
 """C3DIR training patches, cut from data-processing's samples (c3dir.samples).
 
-the samples (PROCESSED_DIR/c3dir/samples/<pair>.nc), their train / val / test split
-(splits.csv) and per-band normalization (band_stats.csv) come from
-c3dir.samples. C3DIRDataset cuts fixed-size patches along the track for one
-split. labels are a list of voxels with their coordinates in the model's output volume, as in
+the samples are PROCESSED_DIR/c3dir/samples/<pair>.nc; their train / val / test split and
+per-band normalization come from c3dir.splits. C3DIRDataset cuts fixed-size patches along the
+track for one split. labels are a list of voxels with their coordinates in the model's output volume, as in
 the C3DIR paper (section 4): the model predicts every voxel, and the loss uses only the labeled
 ones. the vertical axis of that volume follows each pixel's slanted line of sight (paper
 section 3.1). it needs only numpy and works with torch.utils.data.DataLoader as-is (pass
@@ -19,9 +18,7 @@ import pandas as pd
 import xarray as xr
 
 from c3dir.constants import BANDS
-from utilities.paths import PROCESSED_DIR
-
-SAMPLES_DIR = PROCESSED_DIR / "c3dir" / "samples"
+from c3dir.splits import SAMPLES_DIR
 
 
 @lru_cache(maxsize=None)
@@ -35,12 +32,14 @@ def _load(path):
 class C3DIRDataset:
     """patches cut along the track for one split.
 
-    split: "train", "val" or "test" (from splits.csv in samples_dir).
+    split: "train", "val" or "test".
+    table: the split of every sample (c3dir.splits.split_samples).
+    stats: per-band mean / std to normalize with (c3dir.splits.band_stats); None leaves the
+        bands unscaled.
     patch: patch height and width in goes pixels; 64 as in the C3DIR paper (section 2.3).
         patches that don't fit inside the crop are padded.
     stride: how many matched goes pixels to move along the track between patch
         centers; default patch // 2, so most voxels show up in ~2 patches.
-    normalize: scale each band by the train mean/std from band_stats.csv.
 
     each item is a dict:
       x       (16, patch, patch) float32, normalized; nan (space / padding) -> 0
@@ -51,16 +50,15 @@ class C3DIRDataset:
     n changes from patch to patch, so batch them with collate().
     """
 
-    def __init__(self, split, samples_dir=SAMPLES_DIR, patch=64, stride=None, normalize=True):
+    def __init__(self, split, table, stats=None, samples_dir=SAMPLES_DIR, patch=64, stride=None):
         samples_dir = Path(samples_dir)
-        table = pd.read_csv(samples_dir / "splits.csv")
         self.files = [samples_dir / f for f in table.loc[table.split == split, "file"]]
         self.patch = patch
         stride = stride or patch // 2
 
         self.mean = self.std = None
-        if normalize:
-            stats = pd.read_csv(samples_dir / "band_stats.csv").set_index("band").loc[BANDS]
+        if stats is not None:
+            stats = stats.set_index("band").loc[BANDS]
             self.mean = stats["mean"].values.astype(np.float32)[:, None, None]
             self.std = stats["std"].values.astype(np.float32)[:, None, None]
 

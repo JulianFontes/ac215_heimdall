@@ -12,7 +12,7 @@ read. Raw downloads go to `data/raw/<source>/`, training-ready data to `data/pro
 
 The `Dockerfile` builds an image (no torch) that collects a time window, processes everything
 collected, and pushes the results to the shared bucket. Settings are environment variables with
-the same names as the script settings (`START`, `END`, `PULL`, `PUSH`, ...). From the repo root:
+the same names as the script settings (`START`, `END`, `PUSH`, ...). From the repo root:
 
 ```bash
 docker compose build data-processing
@@ -20,5 +20,8 @@ START=2025-08-01T00:00 END=2025-08-02T00:00 docker compose run --rm data-process
 ```
 
 `.env` needs `HEIMDALL_BUCKET` and `GOOGLE_CLOUD_PROJECT`. Locally, `docker-compose.yml` mounts
-`data/`, `artifacts/` and the GCS and ESA MAAP logins (read-only, never in the image). In the
-container, `PULL` is on by default, so samples are built from all processed days in the bucket.
+`data/`, `artifacts/` and the GCS and ESA MAAP logins (read-only, never in the image).
+
+Each run only needs its own window on disk: samples stand alone, and model-train makes the
+train / val / test split from everything in the bucket. After a run has pushed, its local files in
+`data/raw`, `data/processed` and `data/cache` can be deleted.
