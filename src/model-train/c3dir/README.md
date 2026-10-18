@@ -2,10 +2,11 @@
 
 Training and evaluation of C3DIR on the samples from `data-processing`. Each run saves the next
 version (`v001`, `v002`, ...) to `artifacts/models/c3dir/` with its settings, loss history, test
-scores and figures.
+scores, figures, and the split and band statistics it used (`splits.csv`, `band_stats.csv`).
 
 | File | What it does |
 |---|---|
+| `splits.py` | `split_samples`: train / val / test split by day; `band_stats`: per-band normalization from train |
 | `dataset.py` | `C3DIRDataset` and `collate`: 64×64 patches along the EarthCARE track |
 | `training.py` | `fit`: the loss (paper eq. 1-2), random flips, and the training loop |
 | `evaluation.py` | test predictions and scores (`detection_scores`, `water_scores`) |
@@ -20,10 +21,10 @@ From the project root:
 uv run --project src/model-train --env-file .env python -m c3dir.train
 ```
 
-Edit `MODEL`, `TRAINING` and `VERSION` at the top of `train.py` first. With `PUSH` (on by
-default), the new model version is pushed to the shared bucket at the end. With `PULL` (off by
-default), `processed/c3dir` is first pulled from the bucket, replacing local files that differ;
-`.env` names the bucket. Training uses CUDA or
-Apple MPS when available; ~30 days of data and 3,000 steps take about an hour on a laptop.
+Edit `MODEL`, `TRAINING`, `VERSION` and `VAL_AFTER` / `TEST_AFTER` at the top of `train.py`
+first. With `PUSH` (on by default), the new model version is pushed to the shared bucket at the
+end. With `PULL` (off by default), `processed/c3dir` is first pulled from the bucket, replacing
+local files that differ; `.env` names the bucket. Training uses CUDA or Apple MPS when available;
+~30 days of data and 3,000 steps take about an hour on a laptop.
 
 See [`docs/c3dir.md`](../../../docs/c3dir.md) for the whole pipeline.
