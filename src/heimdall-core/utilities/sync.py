@@ -1,9 +1,9 @@
 """copy folders between the shared bucket and local disk (see bucket.py for the layout).
 
 edit the settings and run from the repo root:
-  uv run --project src/heimdall-core --extra gcs --env-file .env python -m c3dir.sync
+  uv run --project src/heimdall-core --extra gcs --env-file .env python -m utilities.sync
 """
-from c3dir.bucket import folders, pull, push
+from utilities.bucket import folders, pull, push
 
 # settings: bucket folders, named like the local folders (raw/..., processed/..., models/..., predictions/...)
 SHOW = ["models/c3dir", "processed"]  # print what is in these bucket folders

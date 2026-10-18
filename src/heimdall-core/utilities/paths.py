@@ -15,7 +15,7 @@ HEIMDALL_ARTIFACTS_DIR move the roots, e.g. to mounted volumes in a container.
 import os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]  # src/heimdall-core/c3dir/paths.py -> repo root
+ROOT = Path(__file__).resolve().parents[3]  # src/heimdall-core/utilities/paths.py -> repo root
 DATA_DIR = Path(os.environ.get("HEIMDALL_DATA_DIR", ROOT / "data"))
 ARTIFACTS_DIR = Path(os.environ.get("HEIMDALL_ARTIFACTS_DIR", ROOT / "artifacts"))
 

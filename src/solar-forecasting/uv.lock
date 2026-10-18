@@ -221,11 +221,12 @@ plots = [
 
 [package.metadata]
 requires-dist = [
+    { name = "google-cloud-storage", marker = "extra == 'gcs'" },
     { name = "matplotlib", marker = "extra == 'plots'" },
     { name = "numpy" },
     { name = "pyproj" },
 ]
-provides-extras = ["plots"]
+provides-extras = ["plots", "gcs"]
 
 [[package]]
 name = "idna"

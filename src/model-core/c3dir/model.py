@@ -20,7 +20,7 @@ import torch
 
 from c3dir.constants import BANDS, TARGETS
 from c3dir.network import C3DIRNet, ModelConfig, decode
-from c3dir.paths import MODELS_DIR, ROOT
+from utilities.paths import MODELS_DIR, ROOT
 
 MODEL_ROOT = MODELS_DIR / "c3dir"
 MASK_COLUMNS = [TARGETS.index(m) for m in ["hydrometeor_mask", "ice_mask", "liquid_mask", "rain_mask"]]

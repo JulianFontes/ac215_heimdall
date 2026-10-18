@@ -12,8 +12,8 @@ from scipy.ndimage import gaussian_filter
 
 from c3dir.constants import GOES19_LON, LEVELS_KM, MASK_THRESHOLD, SPECIES, VIEW_RADIUS_DEG, WATER
 from c3dir.geometry import view_circle
-from c3dir.plot_style import CLOUD_CMAP, PROBABILITY_CMAP, RAY_COLOR, styled
 from c3dir.evaluation import _water
+from utilities.plot_style import CLOUD_CMAP, PROBABILITY_CMAP, RAY_COLOR, styled
 
 
 @styled

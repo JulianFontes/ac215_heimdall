@@ -16,10 +16,10 @@ change the settings below and run from the repo root (.env names the bucket):
 requires the one-time ESA MAAP login setup for
 earthcarekit: https://tropos-rsd.github.io/earthcarekit/setup/
 """
-from c3dir.bucket import push
 from c3dir.earthcare import EarthCareFrames
 from c3dir.goes import GOESStrips
-from c3dir.paths import RAW_DIR
+from utilities.bucket import push
+from utilities.paths import RAW_DIR
 
 # settings: change these
 START = "2025-07-09T18:00"  # UTC
