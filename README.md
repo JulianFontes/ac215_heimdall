@@ -40,6 +40,13 @@ uv run --project src/model-train --env-file .env python -m c3dir.train         #
 uv run --project src/model-deploy python -m c3dir.predict                      # 3D clouds on any GOES-19 scan
 ```
 
+Or collect and process a window in the data-processing container, which pushes to the bucket
+(see [`src/data-processing/README.md`](src/data-processing/README.md#container)):
+
+```bash
+START=2025-08-01T00:00 END=2025-08-02T00:00 docker compose run --rm data-processing
+```
+
 Edit the settings at the top of each file first. Data goes to `data/` and models and figures to
 `artifacts/` (both git-ignored). `collect` and `process` push their new files to the shared bucket,
 and `train` pushes the new model (`PUSH` settings; `train` can also pull `processed/c3dir` first with `PULL`, see below). See [`docs/c3dir.md`](docs/c3dir.md) for how the pipeline works,

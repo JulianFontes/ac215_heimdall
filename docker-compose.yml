@@ -16,3 +16,28 @@ services:
       # Bind mount: 3d predictions / forecasts / sample data written here are served live so no rebuild needed
       - ./src/heimdall-frontend/public/data:/usr/share/nginx/html/data:ro # exposes the data folder to the frontend container
     restart: unless-stopped # automatically restart the container if it crashes or is stopped
+
+  # C3DIR data scraping: collect a window, process it, push to the shared bucket, then exit.
+  # It's a job, not a server, so it only runs on request (profile "jobs"):
+  #   START=2025-08-01 END=2025-08-02 docker compose run --rm data-processing
+  data-processing:
+    build:
+      context: ./src # src/, so the heimdall-core path dependency is in the build context
+      dockerfile: data-processing/Dockerfile
+    image: heimdall-data-processing
+    profiles: ["jobs"]
+    environment:
+      HEIMDALL_BUCKET: ${HEIMDALL_BUCKET:?set HEIMDALL_BUCKET in .env}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:?set GOOGLE_CLOUD_PROJECT in .env}
+      # settings for c3dir.collect / c3dir.process; empty keeps the script's default
+      START: ${START:-}
+      END: ${END:-}
+      PULL: ${PULL:-true} # pull processed/c3dir first, so samples cover all processed days
+      PUSH: ${PUSH:-true}
+    volumes:
+      # local data, so local runs and container runs share files (a cloud job starts empty and pulls)
+      - ./data:/data
+      - ./artifacts:/artifacts
+      # logins, read-only and never in the image: GCS (gcloud auth application-default login) and ESA MAAP (earthcarekit)
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
+      - ${HOME}/.config/earthcarekit:/root/.config/earthcarekit:ro

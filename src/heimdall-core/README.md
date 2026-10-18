@@ -14,6 +14,7 @@ stay small. It has two packages:
 | `utilities/paths.py` | the data folders every service reads and writes (`data/raw`, `data/processed`, `data/cache`, `data/predictions`, `artifacts/models`, `artifacts/figures`) |
 | `utilities/bucket.py` | the shared GCS bucket, same layout as `paths.py` (`pull`, `push`, `folders`); needs the `gcs` extra (`heimdall-core[gcs]`) |
 | `utilities/sync.py` | script: pull and push bucket folders (settings at the top) |
+| `utilities/settings.py` | `setting(name, default)`: a script setting that an environment variable of the same name can override (for containers) |
 | `utilities/plot_style.py` | shared figure style (Arial bold) and colors; needs the `plots` extra (`heimdall-core[plots]`) |
 
 Services install it from `../heimdall-core` (see their `pyproject.toml`) and import e.g.
