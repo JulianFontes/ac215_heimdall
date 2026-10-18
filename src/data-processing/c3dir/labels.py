@@ -17,7 +17,7 @@ import xarray as xr
 
 from c3dir.constants import GOES19_LON, LEVELS_KM, MASK_THRESHOLD, VIEW_RADIUS_DEG
 from c3dir.geometry import within_view
-from c3dir.paths import PROCESSED_DIR, RAW_DIR
+from utilities.paths import PROCESSED_DIR, RAW_DIR
 
 
 class EarthCareLabels:

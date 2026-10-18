@@ -37,11 +37,11 @@ model-deploy        inference, plots                 predictions on any GOES-19 
 
 model-core          network (C3DIRNet), model (C3DIR: predict, save, load), shared by model-train
                     and model-deploy
-heimdall-core       constants, geometry, paths, plot_style: torch-free, shared by all four, so
-                    data-processing installs no torch
+heimdall-core       c3dir constants and geometry, plus utilities (paths, bucket, plot_style)
+                    shared by every model: torch-free, so data-processing installs no torch
 ```
 
-Services only exchange data through these folders (`c3dir/paths.py` in heimdall-core names them).
+Services only exchange data through these folders (`utilities/paths.py` in heimdall-core names them).
 They sit under `data/` and `artifacts/` at the repo root (git-ignored); on GCP the same layout
 becomes prefixes in a bucket. Set `HEIMDALL_DATA_DIR` / `HEIMDALL_ARTIFACTS_DIR` to move them,
 e.g. to mounted volumes in a container. Each service's `c3dir/README.md` lists its files.
@@ -65,7 +65,7 @@ Converts new frames to labels, collocates every new strip, plots one example pai
 from which days go to validation / test; `None` splits ~80/10/10 by date).
 
 With `PUSH = True` (the default), both steps copy their new files to the shared GCS bucket at the
-end, in the same layout as the local folders (`heimdall-core/c3dir/bucket.py`).
+end, in the same layout as the local folders (`heimdall-core/utilities/bucket.py`).
 
 **3. Train and evaluate:** `uv run --project src/model-train python -m c3dir.train`
 

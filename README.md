@@ -55,10 +55,10 @@ folders (`raw/`, `processed/`, `predictions/`, `models/<model>/<version>/`, `fig
 2. Copy `.env.example` to `.env` and set `HEIMDALL_BUCKET`.
 
 Then pull a teammate's model or push yours by editing the settings in
-[`src/heimdall-core/c3dir/sync.py`](src/heimdall-core/c3dir/sync.py) and running:
+[`src/heimdall-core/utilities/sync.py`](src/heimdall-core/utilities/sync.py) and running:
 
 ```bash
-uv run --project src/heimdall-core --extra gcs --env-file .env python -m c3dir.sync
+uv run --project src/heimdall-core --extra gcs --env-file .env python -m utilities.sync
 ```
 
 Files only copy when new or changed, and nothing is ever deleted. Models are never overwritten: push a

@@ -18,10 +18,10 @@ from c3dir.dataset import C3DIRDataset
 from c3dir.evaluation import detection_scores, predict_curtain, predict_samples, water_scores
 from c3dir.model import C3DIR
 from c3dir.network import ModelConfig
-from c3dir.paths import PROCESSED_DIR
 from c3dir.plots import (plot_coverage, plot_coverage_disk, plot_curtain, plot_detection,
                          plot_history, plot_profiles, plot_species_curtain, plot_water)
 from c3dir.training import TrainConfig, fit
+from utilities.paths import PROCESSED_DIR
 
 # settings: change these
 MODEL = ModelConfig(width=32)  # paper: width 64

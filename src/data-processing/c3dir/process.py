@@ -19,12 +19,12 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import xarray as xr
 
-from c3dir.bucket import push
 from c3dir.collocation import Collocation
 from c3dir.labels import EarthCareLabels
 from c3dir.plots import Plotting
 from c3dir.samples import Samples
-from c3dir.paths import FIGURES_DIR
+from utilities.bucket import push
+from utilities.paths import FIGURES_DIR
 
 # settings: change these
 START = "2025-07-09T18:00"  # UTC window to list and plot an example from

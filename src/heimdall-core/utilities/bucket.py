@@ -26,7 +26,7 @@ from functools import cache
 
 from google.cloud import storage
 
-from c3dir.paths import FIGURES_DIR, MODELS_DIR, PREDICTIONS_DIR, PROCESSED_DIR, RAW_DIR
+from utilities.paths import FIGURES_DIR, MODELS_DIR, PREDICTIONS_DIR, PROCESSED_DIR, RAW_DIR
 
 FOLDERS = {"raw": RAW_DIR, "processed": PROCESSED_DIR, "predictions": PREDICTIONS_DIR,
            "models": MODELS_DIR, "figures": FIGURES_DIR}

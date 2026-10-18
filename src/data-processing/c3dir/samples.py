@@ -19,7 +19,7 @@ import pandas as pd
 import xarray as xr
 
 from c3dir.constants import BANDS
-from c3dir.paths import PROCESSED_DIR
+from utilities.paths import PROCESSED_DIR
 
 VOXEL_VARS = ["voxel_level", "voxel_row", "voxel_col", "voxel_profile", "voxel_distance_km",
               "voxel_dt_seconds", "voxel_labels"]

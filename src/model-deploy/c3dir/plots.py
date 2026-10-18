@@ -8,8 +8,8 @@ from matplotlib.colors import LogNorm
 
 from c3dir.constants import LEVELS_KM, PHASES, SPECIES
 from c3dir.geometry import ray_latlon, scan_angles
-from c3dir.plot_style import CLOUD_CMAP, SKY_COLOR, styled, true_color
 from c3dir.inference import crop, scan_time
+from utilities.plot_style import CLOUD_CMAP, SKY_COLOR, styled, true_color
 
 
 @styled

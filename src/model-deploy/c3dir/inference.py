@@ -19,8 +19,8 @@ from goes2go import GOES
 
 from c3dir.constants import BANDS, LEVELS_KM, PHASES, SPECIES
 from c3dir.geometry import ray_latlon, scan_angles
-from c3dir.paths import CACHE_DIR
 from c3dir.model import decode_numpy
+from utilities.paths import CACHE_DIR
 
 # SURFRAD stations (lat, lon)
 SURFRAD = {
